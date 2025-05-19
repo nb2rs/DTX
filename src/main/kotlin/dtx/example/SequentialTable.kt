@@ -53,7 +53,7 @@ internal class WrappingInt(
 }
 
 /**
- * A [dtx.table.Table] implementation that selects entries in a sequential order.
+ * A [Table] implementation that selects entries in a sequential order.
  *
  * SequentialTable returns the result of rolling each of its values in sequence,
  * wrapping back to the beginning when it reaches the end. When the table wraps,
@@ -216,4 +216,13 @@ public class SequentialTableBuilder<T, R> {
     public fun build(): SequentialTable<T, R> {
         return SequentialTable(tableName, tableValues.map { it }, onSelectFunc, onResetFunc)
     }
+}
+
+public fun <T, R> sequentialTable(
+    tableName: String = "Unnamed Sequential Table",
+    block: SequentialTableBuilder<T, R>.() -> Unit
+): SequentialTable<T, R> {
+    return SequentialTableBuilder<T, R>()
+        .apply { name(tableName) }
+        .apply(block).build()
 }

@@ -10,7 +10,7 @@ import util.SparseMatrix
 import kotlin.random.Random
 
 /**
- * A [dtx.table.Table] implementation that selects entries from a two-dimensional matrix.
+ * A [Table] implementation that selects entries from a two-dimensional matrix.
  *
  * @param T The type of the target object for which the roll is performed.
  * @param R The type of the result produced by the roll operation.
@@ -208,4 +208,21 @@ public class MatrixTableBuilder<T, R> {
 
         return MatrixTable(tableName, matrix, onSelectFun)
     }
+}
+
+
+/**
+ * Creates a [MatrixTable] using a builder.
+ *
+ * @param tableName The name of the table.
+ * @param block The builder lambda for the [MatrixTable].
+ * @return [MatrixTable]
+ * */
+public inline fun <T, R> matrixTable(
+    tableName: String = "Unnamed Matrix Table",
+    block: MatrixTableBuilder<T, R>.() -> Unit
+): MatrixTable<T, R> {
+    return MatrixTableBuilder<T, R>()
+        .apply { name(tableName) }
+        .apply(block).build()
 }

@@ -455,7 +455,7 @@ public open class ExhaustiveTableBuilder<T, R> {
  * @return [ExhaustiveTable]
  * */
 public inline fun <T, R> uniformExhaustiveTable(
-    tableName: String,
+    tableName: String = "Unnamed Exhaustive Table",
     block: ExhaustiveTableBuilder<T, R>.() -> Unit
 ): ExhaustiveTable<T, R> {
     return ExhaustiveTableBuilder<T, R>()
@@ -474,7 +474,7 @@ public inline fun <T, R> uniformExhaustiveTable(
  * @property tableName The name of the table, can be used for identification and debugging.
  */
 public class WeightedExhaustiveTable<T, R>(
-    tableName: String,
+    tableName: String = "Unnamed Exhaustive Table",
     initialItems: List<ExhaustiveRollableEntry<T, R>>,
     onSelectFunc: (T, RollResult<R>) -> Unit = ::defaultOnSelect,
 ): ExhaustiveTable<T, R>(tableName, initialItems, onSelectFunc) {
@@ -534,7 +534,23 @@ public class WeightedExhaustiveTableBuilder<T, R>: ExhaustiveTableBuilder<T, R>(
      *
      * @return A [WeightedExhaustiveTable] instance.
      */
-    override fun build(): ExhaustiveTable<T, R> {
+    override fun build(): WeightedExhaustiveTable<T, R> {
         return WeightedExhaustiveTable<T, R>(tableName, items, onSelect)
     }
+}
+
+/**
+ * Creates a [WeightedExhaustiveTable] using a builder.
+ *
+ * @param tableName The name of the table.
+ * @param block The builder lambda for the [WeightedTableBuilder].
+ * @return [WeightedExhaustiveTable]
+ * */
+public inline fun <T, R> weightedExhaustiveTable(
+    tableName: String = "Unnamed Weighted Exhaustive Table",
+    block: ExhaustiveTableBuilder<T, R>.() -> Unit
+): WeightedExhaustiveTable<T, R> {
+    return WeightedExhaustiveTableBuilder<T, R>()
+        .apply { name(tableName) }
+        .apply(block).build()
 }
