@@ -2,7 +2,7 @@ package rs_tables
 
 import Item
 import Player
-import dtx.core.rollable
+import dtx.core.singleRollable
 
 enum class ClueDifficulty(val isFreeToPlay: Boolean = false) {
     Beginner(true), Easy, Medium, Hard, Elite, Master;
@@ -10,7 +10,7 @@ enum class ClueDifficulty(val isFreeToPlay: Boolean = false) {
     val item get() = Item("clue_scroll_(${this.name.lowercase()})")
 }
 
-fun clueScrollDrop(difficulty: ClueDifficulty) = rollable<Player, Item> {
+fun clueScrollDrop(difficulty: ClueDifficulty) = singleRollable<Player, Item> {
 
     val item = difficulty.item
 
@@ -30,7 +30,7 @@ enum class ChampionType {
     Jogre, LesserDemon, Human
 }
 
-fun championScroll(type: ChampionType) = rollable<Player, Item> {
+fun championScroll(type: ChampionType) = singleRollable<Player, Item> {
 
     val scrollItem = Item("${type.name.lowercase()}_champion_scroll")
 

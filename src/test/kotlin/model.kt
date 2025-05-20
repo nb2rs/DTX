@@ -1,4 +1,4 @@
-import dtx.core.rollable
+import dtx.core.singleRollable
 import rs_tables.ChampionType
 import kotlin.random.Random
 
@@ -44,7 +44,7 @@ inline fun IntRange.toRandomIntRange() = RandomIntRange(this)
 
 infix fun Int.randTo(endInclusive: Int) = RandomIntRange(this .. endInclusive)
 
-fun Item(itemId: String, amount: RandomIntRange) = rollable<Player, Item> {
+fun Item(itemId: String, amount: RandomIntRange) = singleRollable<Player, Item> {
     result {
         Item(itemId, amount.random())
     }
