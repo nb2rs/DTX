@@ -92,6 +92,41 @@ public interface Rollable<T, R> {
     }
 
     /**
+     * A [Rollable] implementation that always returns a fixed list of results
+     */
+    public data class ListOf<T, R>(
+        public val rollables: List<Rollable<T, R>>,
+        public val predicate: (T) -> Boolean = { true },
+        public val onSelectFun: (T, RollResult<R>) -> Unit = ::defaultOnSelect
+    ): Rollable<T, R> {
+
+        override fun shouldRoll(target: T): Boolean = predicate(target)
+
+        override fun onSelect(target: T, result: RollResult<R>) {
+            return onSelectFun.invoke(target, result)
+        }
+
+        override fun roll(target: T, otherArgs: ArgMap): RollResult<R> {
+
+            if (!shouldRoll(target)) {
+                return RollResult.Nothing()
+            }
+
+            val results = buildList {
+                rollables.forEach { rollable ->
+                    add(rollable.roll(target, otherArgs))
+                }
+            }
+
+            val result = results.flattenToList()
+
+            onSelect(target, result)
+
+            return result
+        }
+    }
+
+    /**
      * A Rollable implementation that always returns a fixed result.
      *
      * @property result The fixed result to return.
@@ -245,8 +280,48 @@ public open class SingleRollableBuilder<T, R> {
     }
 }
 
-public fun <T, R> rollable(block: SingleRollableBuilder<T, R>.() -> Unit): Rollable<T, R> {
+public open class ListRollableBuilder<T, R> {
+
+    public var rollables: MutableList<Rollable<T, R>> = mutableListOf()
+
+    public var shouldRollFunc: (T) -> Boolean = { true }
+
+    public var onSelectFun: (T, RollResult<R>) -> Unit = Rollable.Companion::defaultOnSelect
+
+    public fun shouldRoll(block: (T) -> Boolean): ListRollableBuilder<T, R> = apply {
+        shouldRollFunc = block
+    }
+
+    public fun onSelect(block: (T, RollResult<R>) -> Unit): ListRollableBuilder<T, R> = apply {
+        onSelectFun = block
+    }
+
+    public fun add(rollable: Rollable<T, R>): ListRollableBuilder<T, R> = apply {
+        rollables.add(rollable)
+    }
+
+    public fun add(block: SingleRollableBuilder<T, R>.() -> Unit): ListRollableBuilder<T, R> = apply {
+        add(SingleRollableBuilder<T, R>().apply(block).build())
+    }
+
+    public fun add(item: R): ListRollableBuilder<T, R> {
+        return add(Rollable.Single(item))
+    }
+
+    public fun build(): Rollable.ListOf<T, R> {
+        return Rollable.ListOf<T, R>(rollables, shouldRollFunc, onSelectFun)
+    }
+}
+
+public fun <T, R> singleRollable(block: SingleRollableBuilder<T, R>.() -> Unit): Rollable<T, R> {
     val builder = SingleRollableBuilder<T, R>()
+    builder.apply(block)
+    return builder.build()
+}
+
+
+public fun <T, R> listRollable(block: ListRollableBuilder<T, R>.() -> Unit): Rollable<T, R> {
+    val builder = ListRollableBuilder<T, R>()
     builder.apply(block)
     return builder.build()
 }
