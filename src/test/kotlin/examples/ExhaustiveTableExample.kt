@@ -5,8 +5,9 @@ import Player
 import dtx.example.uniformExhaustiveTable
 import dtx.example.weightedExhaustiveTable
 
+
 /**
- * Could be useful for something like a lottery or a raffle or low-effort encounter picking
+ * Good for simple raffles or encounter table draws or something like that
  */
 val uniformExhaustiveTableExample = uniformExhaustiveTable<Player, Item> {
 
@@ -21,8 +22,9 @@ val uniformExhaustiveTableExample = uniformExhaustiveTable<Player, Item> {
     10 rolls Item("Lone goblin")
 }
 
+
 /**
- * Same thing, but with the [WeightedExhaustiveTable], the items are weighted by how many rolls they have left.
+ * Very good for raffles tbh, weights are based on how many rolls each item has
  */
 val weightedExhaustiveTableExample = weightedExhaustiveTable<Player, Item> {
 

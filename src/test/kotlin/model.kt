@@ -18,8 +18,11 @@ class Player(
         ChampionType.entries.forEach { put(it, false) }
     }.toMutableMap()
 ) {
+
     fun posesses(item: Item): Boolean = item in inventory || item in bank
+
     fun isOnMemberWorld(): Boolean = currentWorld > 1
+
     fun hasChampionScrollComplete(type: ChampionType): Boolean = hasScrollCompleted[type]!!
 }
 
@@ -33,18 +36,29 @@ value class RandomIntRange(val wrappedRange: IntRange): ClosedRange<Int> by wrap
 
     override val endInclusive: Int get() = wrappedRange.endInclusive
 
-    override fun contains(value: Int) = wrappedRange.contains(value)
+    override fun contains(value: Int): Boolean {
+        return wrappedRange.contains(value)
+    }
 
-    override fun isEmpty() = wrappedRange.isEmpty()
+    override fun isEmpty(): Boolean {
+        return wrappedRange.isEmpty()
+    }
 
-    fun random(withRandom: Random = Random) = wrappedRange.random(withRandom)
+    fun random(withRandom: Random = Random): Int {
+        return wrappedRange.random(withRandom)
+    }
 }
 
-inline fun IntRange.toRandomIntRange() = RandomIntRange(this)
+inline fun IntRange.toRandomIntRange(): RandomIntRange {
+    return RandomIntRange(this)
+}
 
-infix fun Int.randTo(endInclusive: Int) = RandomIntRange(this .. endInclusive)
+infix fun Int.randTo(endInclusive: Int): RandomIntRange {
+    return RandomIntRange(this .. endInclusive)
+}
 
 fun Item(itemId: String, amount: RandomIntRange) = singleRollable<Player, Item> {
+
     result {
         Item(itemId, amount.random())
     }

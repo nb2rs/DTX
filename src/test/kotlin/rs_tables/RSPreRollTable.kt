@@ -21,9 +21,7 @@ class RSPreRollTable(
 
     override val ignoreModifier: Boolean = true
 
-
     override fun roll(target: Player, otherArgs: ArgMap): RollResult<Item> {
-
         if (tableEntries.isEmpty()) {
             return RollResult.Nothing()
         }

@@ -64,7 +64,6 @@ val fullOborTable = RSDropTable(
 )
 
 fun <T: RSTable> T.countRoll(rolls: Int, target: Player, otherArgs: ArgMap = ArgMap.Empty): Map<String, Int> = buildMap {
-
     fun Item.inc() {
         putIfAbsent(itemId, 0)
         put(itemId, get(itemId)!! + 1)
@@ -81,7 +80,6 @@ fun <T: RSTable> T.countRoll(rolls: Int, target: Player, otherArgs: ArgMap = Arg
 }
 
 fun oborRollComparison() {
-
     // OSRS wiki-sourced expected drop rates, as a percentage per kill
     val mainExpected = listOf(
         // Weapons and Armour

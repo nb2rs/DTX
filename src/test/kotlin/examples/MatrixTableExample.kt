@@ -6,9 +6,8 @@ import dtx.core.*
 import dtx.example.matrixTable
 import rs_tables.sendMessage
 
-
 /**
- * A different kind of way to make either a unique table or a weighted table.
+ * Quirky way to do uniform table.
  */
 val chestTable = matrixTable<Player, Item> {
 

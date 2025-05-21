@@ -35,15 +35,11 @@ data class OreFilter(
     }
 }
 
+
 /**
- * This isn't a completely impractical example, it "simulates" breaking down a rock.
- * As you "break it down" via rolling, you have a higher chance of finding the good stuff
- *     because there's less of the bad stuff to stop you.
- * Contains resources:
- * - Stone
- * - Impure Ore
- * - Pure Ore
- * - Gemstone
+ * Example of a """realistic""" mining node.
+ * The more you mine it the less of the other stuff you get.
+ * But it also re-ups the things you don't get so not actually
  */
 val ExampleOreNode = metaWeightedTable<Player, Item> {
 

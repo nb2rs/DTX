@@ -35,14 +35,8 @@ data class BossFilter(
 }
 
 /**
- * This isn't a practical example, but a simple example of how a MetaMultiChanceTable can be used.
- * This is a very mild and incremental form of pity drops, and it's based on the table rather than the player.
- * This example doesn't change anything other than the chance of the item.
- * Contains supplies:
- * - Bone (100% chance always)
- * - Armour scrap (33% chance)
- * - Helmet (10% chance)
- * - Sword (2% chance)
+ * Mild example of an NPC-based pity drop system rather than player-based.
+ * This example never guarantees a drop but just raises the chance of a drop happening, and then lowers it after it is picked.
  */
 val ExampleBossDrops = metaMultiChanceTable<Player, Item> {
 
