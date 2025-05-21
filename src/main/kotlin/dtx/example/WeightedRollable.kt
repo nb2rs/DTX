@@ -14,7 +14,7 @@ public interface WeightedRollable<T, R>: Rollable<T, R> {
     }
 
     public operator fun component2(): Rollable<T, R> {
-        return   rollable
+        return rollable
     }
 
     public override fun roll(target: T, otherArgs: ArgMap): RollResult<R> {
@@ -22,11 +22,14 @@ public interface WeightedRollable<T, R>: Rollable<T, R> {
     }
 
     private data object Empty: WeightedRollable<Any?, Any?> {
+
         override val weight: Double = 0.0
+
         override val rollable: Rollable<Any?, Any?> = Rollable.Empty()
     }
 
     public companion object {
+
         public fun <T, R> Empty(): WeightedRollable<T, R> {
             return Empty as WeightedRollable<T, R>
         }
