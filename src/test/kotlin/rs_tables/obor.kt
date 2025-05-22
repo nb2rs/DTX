@@ -9,6 +9,8 @@ import player
 import randTo
 import toRandomIntRange
 
+inline fun Item(itemId: String, amountRange: IntRange) = Item(itemId, amountRange.toRandomIntRange())
+
 val oborGuaranteed = rsGuaranteedTable {
     identifier("Obor guaranteed drops")
     add(Item("big_bones"))
@@ -16,14 +18,10 @@ val oborGuaranteed = rsGuaranteedTable {
     add(Item("ensouled_giant_head"))
 }
 
-val oborUnique = singleRollable<Player, Item> {
-    result(Item("hill_giant_club"))
-}
-
-inline fun Item(itemId: String, amountRange: IntRange) = Item(itemId, amountRange.toRandomIntRange())
+val oborUnique = singleRollable<Player, Item> { result(Item("hill_giant_club")) }
 
 val oborMainTable = rsWeightedTable {
-    identifier("Obor examples.rs_tables.main drop table")
+    identifier("Obor main drop table")
     5 weight Item("rune_med_helm")
     5 weight Item("rune_full_helm")
     5 weight Item("rune_longsword")
