@@ -15,9 +15,15 @@ fun clueScrollDrop(difficulty: ClueDifficulty) = singleRollable<Player, Item> {
     val item = difficulty.item
 
     shouldRoll { player ->
-        if (difficulty.isFreeToPlay && !player.isOnMemberWorld()) {
+
+        if (difficulty.isFreeToPlay) {
+            return@shouldRoll true
+        }
+
+        if (!player.isOnMemberWorld()) {
             return@shouldRoll false
         }
+
         !player.posesses(item)
     }
 
