@@ -8,7 +8,7 @@ import dtx.example.MetaChanceRollable
 import dtx.example.MetaEntryFilter
 import dtx.example.MetaRollable
 import dtx.example.metaMultiChanceTable
-import player
+import examplePlayer
 import kotlin.random.Random
 
 enum class BossModAmount(val modifyBy: Double) {
@@ -111,7 +111,7 @@ fun main() {
         println("-------------------------")
         readlnOrNull()
 
-        val result = ExampleBossDrops.roll(player, ArgMap())
+        val result = ExampleBossDrops.roll(examplePlayer, ArgMap())
         println("Result: $result")
     }
 }

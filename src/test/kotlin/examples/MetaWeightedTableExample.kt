@@ -7,7 +7,7 @@ import dtx.example.MetaEntryFilter
 import dtx.example.MetaRollable
 import dtx.example.MetaWeightedRollable
 import dtx.example.metaWeightedTable
-import player
+import examplePlayer
 import kotlin.random.Random
 
 enum class OreModAmount(val modifyBy: Double) {
@@ -123,7 +123,7 @@ fun main() {
         println("-------------------------")
         readlnOrNull()
 
-        val result = ExampleOreNode.roll(player, ArgMap())
+        val result = ExampleOreNode.roll(examplePlayer, ArgMap())
         println("Result: $result")
     }
 }

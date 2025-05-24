@@ -1,5 +1,7 @@
 package rs_tables
 
+import Item
+import Player
 import dtx.core.RollResult
 import dtx.core.Rollable
 import kotlin.random.Random
