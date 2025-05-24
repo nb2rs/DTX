@@ -9,11 +9,11 @@ data class Item(
 
 class Player(
     val username: String,
-    val dropRateBonus: Double = 0.0,
+    var dropRateBonus: Double = 0.0,
     val bank: Collection<Item> = listOf(),
     val inventory: Collection<Item> = listOf(),
-    val questPoints: Int = 0,
-    val currentWorld: Int = 1,
+    var questPoints: Int = 0,
+    var currentWorld: Int = 1,
     val hasScrollCompleted: MutableMap<ChampionType, Boolean> = buildMap {
         ChampionType.entries.forEach { put(it, false) }
     }.toMutableMap()
@@ -26,7 +26,7 @@ class Player(
     fun hasChampionScrollComplete(type: ChampionType): Boolean = hasScrollCompleted[type]!!
 }
 
-val player = Player("player")
+val examplePlayer = Player("player")
 
 
 @JvmInline
