@@ -5,7 +5,7 @@ import dtx.core.ArgMap
 import dtx.core.RollResult
 import dtx.core.flatten
 import dtx.core.singleRollable
-import player
+import examplePlayer
 import randTo
 import toRandomIntRange
 
@@ -77,7 +77,7 @@ fun <T: RSTable> T.countRoll(rolls: Int, target: Player, otherArgs: ArgMap = Arg
     }
 }
 
-fun oborRollComparison() {
+fun oborRollComparison(player: Player) {
     // OSRS wiki-sourced expected drop rates, as a percentage per kill
     val mainExpected = listOf(
         // Weapons and Armour
@@ -127,17 +127,25 @@ fun oborRollComparison() {
     // OSRS wiki-sourced seed drop amount to get the above expected chances
     val rollAmount = 817_368
     val fullResults = fullOborTable.countRoll(rollAmount, player)
+    println("full: $fullResults")
     println(mainExpected.sumOf { it.second })
     println(fullResults.entries.filter { fr -> mainExpected.any { it.first == fr.key }}.sumOf { it.value.toDouble() / rollAmount })
     println(fullResults.entries.sumOf { it.value })
     expected.forEach { (itemId, dropRate) ->
         print("$itemId - expected[${dropRate}] got[")
-        print((fullResults[itemId]!!.toDouble() / rollAmount) * 100)
+        val gotDropRate = if (fullResults[itemId] != null) {
+            fullResults[itemId]!!.toDouble() / rollAmount * 100
+        } else {
+            0.0
+        }
+        print(gotDropRate)
         println("]")
     }
-
 }
 
 fun main() {
-    oborRollComparison()
+    oborRollComparison(examplePlayer)
+    examplePlayer.currentWorld = 2
+    examplePlayer.questPoints = 33
+    oborRollComparison(examplePlayer)
 }
