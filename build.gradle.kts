@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "nb"
-version = "1.0-SNAPSHOT"
+version = "1.0-0"
 
 repositories {
     mavenCentral()
@@ -29,6 +29,12 @@ tasks.jar {
         ))
     }
     from(sourceSets.main.get().output)
+}
+
+tasks.register<Jar>("examplesJar") {
+    archiveFileName.set("dtx-${archiveVersion.get()}-examples.jar")
+    from(sourceSets.test.get().output)
+    dependsOn(tasks.jar)
 }
 
 kotlin {

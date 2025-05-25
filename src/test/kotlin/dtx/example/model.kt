@@ -1,0 +1,67 @@
+package dtx.example
+
+import dtx.core.singleRollable
+import dtx.example.rs_tables.ChampionType
+import kotlin.random.Random
+
+data class Item(
+    val itemId: String,
+    val itemAmount: Int = 1
+)
+
+class Player(
+    val username: String,
+    var dropRateBonus: Double = 0.0,
+    val bank: Collection<Item> = listOf(),
+    val inventory: Collection<Item> = listOf(),
+    var questPoints: Int = 0,
+    var currentWorld: Int = 1,
+    val hasScrollCompleted: MutableMap<ChampionType, Boolean> = buildMap {
+        ChampionType.entries.forEach { put(it, false) }
+    }.toMutableMap()
+) {
+
+    fun posesses(item: Item): Boolean = item in inventory || item in bank
+
+    fun isOnMemberWorld(): Boolean = currentWorld > 1
+
+    fun hasChampionScrollComplete(type: ChampionType): Boolean = hasScrollCompleted[type]!!
+}
+
+val examplePlayer = Player("player")
+
+
+@JvmInline
+value class RandomIntRange(val wrappedRange: IntRange): ClosedRange<Int> by wrappedRange, OpenEndRange<Int> by wrappedRange, Iterable<Int> by wrappedRange {
+
+    override val start: Int get() = wrappedRange.first
+
+    override val endInclusive: Int get() = wrappedRange.endInclusive
+
+    override fun contains(value: Int): Boolean {
+        return wrappedRange.contains(value)
+    }
+
+    override fun isEmpty(): Boolean {
+        return wrappedRange.isEmpty()
+    }
+
+    fun random(withRandom: Random = Random): Int {
+        return wrappedRange.random(withRandom)
+    }
+}
+
+inline fun IntRange.toRandomIntRange(): RandomIntRange {
+    return RandomIntRange(this)
+}
+
+infix fun Int.randTo(endInclusive: Int): RandomIntRange {
+    return RandomIntRange(this .. endInclusive)
+}
+
+fun Item(itemId: String, amount: RandomIntRange) = singleRollable<Player, Item> {
+
+    result {
+        Item(itemId, amount.random())
+    }
+}
