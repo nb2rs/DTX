@@ -28,7 +28,7 @@ val oborUnique = singleRollable<Player, Item> { result(Item("hill_giant_club")) 
 
 val oborMainTable = rsWeightedTable {
     identifier("Obor main drop table")
-    5 weight Item("rune_med_helm")
+    6 weight Item("rune_med_helm")
     5 weight Item("rune_full_helm")
     5 weight Item("rune_longsword")
     4 weight Item("rune_battleaxe")

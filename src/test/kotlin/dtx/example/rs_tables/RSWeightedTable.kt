@@ -14,7 +14,7 @@ data class RSWeightEntry(
     val rangeEnd: Int,
     val rollable: Rollable<Player, Item>
 ): Rollable<Player, Item> by rollable {
-    infix fun checkWeight(value: Int): Boolean = value in rangeStart .. rangeEnd
+    infix fun checkWeight(value: Int): Boolean = value in rangeStart ..< rangeEnd
 }
 
 class RSWeightedTable(
