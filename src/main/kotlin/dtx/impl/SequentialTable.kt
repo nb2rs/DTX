@@ -9,7 +9,6 @@ import dtx.core.singleRollable
 import dtx.table.AbstractTableBuilder
 import dtx.table.Table
 
-
 internal class WrappingInt(
     var currentValue: Int,
     val wrapFloor: Int,
