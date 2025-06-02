@@ -5,8 +5,7 @@ import dtx.core.ArgMap
 import dtx.core.RollResult
 import dtx.core.Rollable
 import dtx.core.flattenToList
-
-infix fun Int.outOf(other: Int) = toDouble() / other.toDouble()
+import dtx.impl.WeightedTableImpl
 
 data class RSDropTable(
     val identifier: String,
@@ -14,11 +13,9 @@ data class RSDropTable(
     val preRoll: RSPreRollTable = RSPreRollTable.Empty,
     val mainTable: RSWeightedTable = RSWeightedTable.Empty,
     val tertiaries: RSPreRollTable = RSPreRollTable.Empty,
-): RSTable() {
+): RSTable {
 
     override val tableEntries: Collection<Rollable<Player, Item>> = emptyList()
-
-    override val ignoreModifier: Boolean = true
 
     override fun roll(target: Player, otherArgs: ArgMap): RollResult<Item> {
         val results = mutableListOf<RollResult<Item>>()
