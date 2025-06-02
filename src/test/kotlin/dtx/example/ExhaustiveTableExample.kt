@@ -1,5 +1,6 @@
 package dtx.example
 
+import dtx.core.Rollable.Companion.Empty.roll
 import dtx.impl.uniformExhaustiveTable
 import dtx.impl.weightedExhaustiveTable
 
@@ -11,13 +12,49 @@ val uniformExhaustiveTableExample = uniformExhaustiveTable<Player, Item> {
 
     name("Goblin dungeon encounters")
 
-    1 rolls Item("Goblin Head Honcho")
+    1 rolls {
+        onSelect { player, encounter ->
+            println("You turn the corner and the head honcho is there, ready to beat you up.")
+        }
+        onExhaust {
+            println("Well, there's usually only 1 head honcho so that's as hard as it'll get! Hopefully...")
+        }
+        result(Item("Goblin Head Honcho"))
+    }
 
-    3 rolls Item("Goblin Jockey")
+    3 rolls {
+        onSelect { player, encounter ->
+            println("A... skeleton riding a goblin? What? That can't be common around here...")
+        }
+        onExhaust {
+            println("You were right, that wasn't so common. All the... goblin jockeys... are dead.")
+        }
+        result(Item("Goblin Jockey"))
+    }
 
-    6 rolls Item("Goblin Horde")
+    6 rolls {
+        onSelect { player, encounter ->
+            println("You encounter a horde of goblins! Now this is a battle!")
+        }
+        onExhaust {
+            println("That just might have been the last horde.")
+        }
+        result(Item("Goblin Horde"))
+    }
 
-    10 rolls Item("Lone goblin")
+    10 rolls {
+        onSelect { player, encounter ->
+            println("You sneak up on a poor lone goblin!")
+        }
+        onExhaust {
+            println("There can only be so many stray goblins, they usually stick together! That might be the last of them.")
+        }
+        result(Item("Lone goblin"))
+    }
+
+    onExhaust {
+        println("Yikes, out of encounters to roll! Reset the table!")
+    }
 }
 
 
@@ -39,4 +76,8 @@ val weightedExhaustiveTableExample = weightedExhaustiveTable<Player, Item> {
     4 rolls Item("King of Hearts")
     4 rolls Item("King of Diamonds")
     4 rolls Item("King of Clubs")
+
+    onExhaust {
+        println("Raffle is over, deck is empty!!")
+    }
 }
