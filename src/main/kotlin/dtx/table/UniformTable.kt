@@ -10,25 +10,13 @@ import dtx.core.singleRollable
 
 public class UniformTable<T, R>(
     public val tableName: String = "",
-    public val entries: List<Rollable<T, R>>,
+    public override val tableEntries: List<Rollable<T, R>>,
     public val onSelectFunc: (T, RollResult<R>) -> Unit = ::defaultOnSelect
 ): Table<T, R> {
 
-
-    public override val tableEntries: Collection<Rollable<T, R>> = entries
-
-
-    public override fun getBaseDropRate(target: T): Double {
-        return 1.0
-    }
-
-
-    public override val ignoreModifier: Boolean = true
-
-
     public override fun roll(target: T, otherArgs: ArgMap): RollResult<R> {
 
-        val result = entries.random().roll(target, otherArgs)
+        val result = tableEntries.random().roll(target, otherArgs)
         onSelectFunc(target, result)
 
         return result
@@ -39,38 +27,15 @@ public class UniformTable<T, R>(
 }
 
 
-public class UniformTableBuilder<T, R> {
+public open class UniformTableBuilder<T, R>: AbstractTableBuilder<T, R, UniformTable<T, R>, Rollable<T, R>, UniformTableBuilder<T, R>>() {
 
-
-    public var tableName: String = "Unnamed Uniform Table"
-
-
-    public var onSelect: (T, RollResult<R>) -> Unit = ::defaultOnSelect
-
-
-    public val tableEntries: MutableList<Rollable<T, R>> = mutableListOf<Rollable<T, R>>()
-
-
-    public fun name(string: String): UniformTableBuilder<T, R> {
-        
-        tableName = string
-        
-        return this
-    }
-
-
-    public fun onSelect(block: (T, RollResult<R>) -> Unit): UniformTableBuilder<T, R> {
-        
-        onSelect = block
-        
-        return this
-    }
+    override val entries: MutableList<Rollable<T, R>> = mutableListOf<Rollable<T, R>>()
 
 
     public fun add(vararg valuesToAdd: R): UniformTableBuilder<T, R> {
         
         valuesToAdd.forEach {
-            tableEntries.add(Rollable.Single(it))
+            entries.add(Rollable.Single(it))
         }
         
         return this
@@ -79,7 +44,7 @@ public class UniformTableBuilder<T, R> {
 
     public fun add(vararg valuesToAdd: Rollable<T, R>): UniformTableBuilder<T, R> {
         
-        valuesToAdd.forEach(tableEntries::add)
+        valuesToAdd.forEach(entries::add)
         
         return this
     }
@@ -93,11 +58,11 @@ public class UniformTableBuilder<T, R> {
     }
 
 
-    public fun build(): UniformTable<T, R> {
+    public override fun build(): UniformTable<T, R> {
         return UniformTable<T, R>(
-            entries = tableEntries.map { it },
             tableName = tableName,
-            onSelectFunc = onSelect
+            tableEntries = entries,
+            onSelectFunc = onSelectFunc
         )
     }
 }

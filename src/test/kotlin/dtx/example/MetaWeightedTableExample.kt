@@ -41,9 +41,8 @@ data class OreFilter(
 val ExampleOreNode = metaWeightedTable<Player, Item> {
 
     name("Example Ore Node")
-    ignoreModifier(true)
 
-    100.0 weight {
+    100 weight {
 
         id("stone")
 
@@ -77,7 +76,7 @@ val ExampleOreNode = metaWeightedTable<Player, Item> {
         addFilter(OreFilter("gem", MetaModDirection.Increase, OreModAmount.Miniscule))
     }
 
-    10.00 weight {
+    10 weight {
 
         id("pure")
 
@@ -94,7 +93,7 @@ val ExampleOreNode = metaWeightedTable<Player, Item> {
         addFilter(OreFilter("gem", MetaModDirection.Increase, OreModAmount.Small))
     }
 
-    3.00 weight {
+    3 weight {
 
         id("gem")
 

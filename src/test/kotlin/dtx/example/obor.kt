@@ -10,7 +10,6 @@ import dtx.example.rs_tables.RSTable
 import dtx.example.rs_tables.championScroll
 import dtx.example.rs_tables.clueScrollDrop
 import dtx.example.rs_tables.longCurvedTable
-import dtx.example.rs_tables.outOf
 import dtx.example.rs_tables.rsGuaranteedTable
 import dtx.example.rs_tables.rsTertiaryTable
 import dtx.example.rs_tables.rsWeightedTable
@@ -27,8 +26,8 @@ val oborGuaranteed = rsGuaranteedTable {
 val oborUnique = singleRollable<Player, Item> { result(Item("hill_giant_club")) }
 
 val oborMainTable = rsWeightedTable {
-    identifier("Obor main drop table")
-    5 weight Item("rune_med_helm")
+    name("Obor main drop table")
+    6 weight Item("rune_med_helm")
     5 weight Item("rune_full_helm")
     5 weight Item("rune_longsword")
     4 weight Item("rune_battleaxe")
@@ -53,8 +52,9 @@ val oborMainTable = rsWeightedTable {
     1 weight oborUnique
 }
 
+
 val oborTertiaries = rsTertiaryTable {
-    identifier("Obor tertiaries")
+    name("Obor tertiaries")
     1 outOf 16 chance Item("giant_key")
     1 outOf 400 chance longCurvedTable
     1 outOf 5_000 chance championScroll(ChampionType.Giant)
@@ -83,7 +83,7 @@ fun <T: RSTable> T.countRoll(rolls: Int, target: Player, otherArgs: ArgMap = Arg
     }
 }
 
-fun oborRollComparison(player: Player) {
+fun oborRollComparison(player: Player, rolls: Int = 817_368) {
     // OSRS wiki-sourced expected drop rates, as a percentage per kill
     val mainExpected = listOf(
         // Weapons and Armour
@@ -131,7 +131,7 @@ fun oborRollComparison(player: Player) {
         "curved_bone" to 0.02
     )
     // OSRS wiki-sourced seed drop amount to get the above expected chances
-    val rollAmount = 817_368
+    val rollAmount = rolls
     val fullResults = fullOborTable.countRoll(rollAmount, player)
     println("full: $fullResults")
     println(mainExpected.sumOf { it.second })

@@ -1,6 +1,5 @@
 package dtx.impl
 
-
 @JvmInline
 public value class Percent(public val value: Double) {
 

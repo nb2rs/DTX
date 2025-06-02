@@ -38,7 +38,6 @@ data class BossFilter(
 val ExampleBossDrops = metaMultiChanceTable<Player, Item> {
 
     name("Example boss drops")
-    ignoreModifier(true)
 
     100.0.percent chance {
 

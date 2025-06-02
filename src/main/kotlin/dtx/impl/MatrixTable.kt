@@ -6,6 +6,7 @@ import dtx.core.SingleRollableBuilder
 import dtx.core.RollResult
 import dtx.core.Rollable.Companion.defaultOnSelect
 import dtx.core.singleRollable
+import dtx.table.AbstractTableBuilder
 import dtx.table.Table
 import dtx.util.SparseMatrix
 import kotlin.random.Random
@@ -23,10 +24,6 @@ public class MatrixTable<T, R>(
     public override fun onSelect(target: T, result: RollResult<R>): Unit {
         onSelectFun(target, result)
     }
-
-
-    public override val ignoreModifier: Boolean = true
-
 
     public override val tableEntries: Collection<Rollable<T, R>> 
         get() {
@@ -53,39 +50,19 @@ public class MatrixTable<T, R>(
     }
 }
 
-public class MatrixTableBuilder<T, R> {
-
-
-    public var tableName: String = "Unnamed Matrix Table"
-
+public class MatrixTableBuilder<T, R>: AbstractTableBuilder<T, R, MatrixTable<T, R>, Rollable<T, R>, MatrixTableBuilder<T, R>>() {
 
     private var maxRow: Int = 0
 
-
     private var maxColumn: Int = 0
-
 
     private val items = mutableMapOf<Pair<Int, Int>, Rollable<T, R>>()
 
+    override val entries: MutableCollection<Rollable<T, R>> = mutableListOf()
 
-    public var onSelectFun: (T, RollResult<R>) -> Unit = ::defaultOnSelect
-
-
-    public fun name(name: String): MatrixTableBuilder<T, R> {
-
-        tableName = name
-
+    override fun addEntry(entry: Rollable<T, R>): MatrixTableBuilder<T, R> {
         return this
     }
-
-
-    public fun onSelect(block: (T, RollResult<R>) -> Unit): MatrixTableBuilder<T, R> {
-
-        onSelectFun = block
-
-        return this
-    }
-
 
     public fun addItemAt(row: Int, column: Int, value: Rollable<T, R>): MatrixTableBuilder<T, R> = apply {
 
@@ -119,7 +96,7 @@ public class MatrixTableBuilder<T, R> {
     }
 
 
-    public fun build(): MatrixTable<T, R> {
+    public override fun build(): MatrixTable<T, R> {
 
         val matrix = SparseMatrix<Rollable<T, R>>(
             rows = maxRow,
@@ -134,11 +111,9 @@ public class MatrixTableBuilder<T, R> {
             matrix[row, column] = value
         }
 
-        return MatrixTable(tableName, matrix, onSelectFun)
+        return MatrixTable(tableName, matrix, onSelectFunc)
     }
 }
-
-
 
 public inline fun <T, R> matrixTable(
     tableName: String = "Unnamed Matrix Table",

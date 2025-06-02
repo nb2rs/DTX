@@ -1,23 +1,15 @@
 package dtx.table
 
+import dtx.core.ArgMap
+import dtx.core.RollResult
 import dtx.core.Rollable
 
-
 public interface Table<T, R>: Rollable<T, R> {
-
 
     public val tableEntries: Collection<Rollable<T, R>>
 
 
-    public val ignoreModifier: Boolean
-
-
     public fun rollModifier(percentage: Double): Double {
-
-        if (ignoreModifier) {
-            return 1.0
-        }
-
         return defaultRollModifier(percentage)
     }
 
