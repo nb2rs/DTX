@@ -8,35 +8,34 @@ import dtx.core.Rollable
 import dtx.core.SingleRollableBuilder
 import dtx.core.flattenToList
 import dtx.core.singleRollable
+import dtx.impl.ChanceRollableImpl
+import dtx.impl.MultiChanceTable
+import dtx.impl.MultiChanceTableImpl
 import kotlin.collections.forEach
 
 
+/**
+ * Implements [MultiChanceTable] via the default [MultiChanceTableImpl]
+ * Entries are all 100% chance because this table is guaranteed to roll on everything.
+ * Whether every [Rollable] will give a non-[RollResult.Nothing] result is not guaranteed, just that the [Rollable] will be rolled
+ */
 class RSGuaranteedTable(
-    public val tableIdentifier: String,
-    public override val tableEntries: Collection<Rollable<Player, Item>>,
-    public override val ignoreModifier: Boolean = true,
-): RSTable() {
-    override fun roll(target: Player, otherArgs: ArgMap): RollResult<Item> {
-        if (tableEntries.isEmpty()) {
-            return RollResult.Nothing()
-        }
-
-        val rollResults = mutableListOf<RollResult<Item>>()
-        tableEntries.forEach { tableEntry ->
-            rollResults.add(tableEntry.roll(target, otherArgs))
-        }
-        return rollResults.flattenToList()
-    }
-
+    tableIdentifier: String,
+    tableEntries: Collection<Rollable<Player, Item>>,
+): RSTable, MultiChanceTable<Player, Item> by MultiChanceTableImpl(
+    tableIdentifier,
+    tableEntries.map { ChanceRollableImpl(100.0, it) }
+) {
     companion object {
         val Empty = RSGuaranteedTable("", emptyList())
     }
 }
 
 public class RSGuaranteedTableBuilder {
+
     public var tableIdentifier: String = ""
+
     private val tableEntries = mutableListOf<Rollable<Player, Item>>()
-    public var ignoreModifier = false
 
     fun identifier(identifier: String): RSGuaranteedTableBuilder {
         tableIdentifier = identifier
@@ -61,8 +60,7 @@ public class RSGuaranteedTableBuilder {
 
     fun build(): RSGuaranteedTable = RSGuaranteedTable(
         tableIdentifier = tableIdentifier,
-        tableEntries = tableEntries,
-        ignoreModifier = ignoreModifier
+        tableEntries = tableEntries
     )
 }
 
