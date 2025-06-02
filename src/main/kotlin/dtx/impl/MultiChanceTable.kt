@@ -64,12 +64,6 @@ public open class MultiChanceTableImpl<T, R>(
     public open val onSelectFunc: (T, RollResult<R>) -> Unit = ::defaultOnSelect
 ): MultiChanceTable<T, R> {
 
-    init {
-        require(entries.isNotEmpty()) {
-            "MultiChanceTable[$tableName] entries must not be empty"
-        }
-    }
-
     public override val tableEntries: List<ChanceRollable<T, R>> = entries.map(NoTransform())
 
     public override fun onSelect(target: T, result: RollResult<R>) {
@@ -88,6 +82,10 @@ public open class MultiChanceTableImpl<T, R>(
 
 
     public override fun roll(target: T, otherArgs: ArgMap): RollResult<R> {
+
+        if (tableEntries.isEmpty()) {
+            return RollResult.Nothing()
+        }
 
         val pickedEntries = mutableListOf<ChanceRollable<T, R>>()
 
