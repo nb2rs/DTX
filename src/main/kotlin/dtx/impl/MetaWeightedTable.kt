@@ -2,16 +2,13 @@ package dtx.impl
 
 import dtx.core.ArgMap
 import dtx.core.Rollable
-import dtx.core.SingleRollableBuilder
 import dtx.core.RollResult
 import dtx.core.Rollable.Companion.defaultOnSelect
 import dtx.core.Rollable.Companion.defaultGetBaseDropRate
-import dtx.core.singleRollable
 import dtx.table.AbstractTableBuilder
 import dtx.table.Table.Companion.defaultRollModifier
 import dtx.util.NoTransform
 import dtx.util.isSortedBy
-import kotlin.random.Random
 
 public class MetaWeightedRollable<T, R>(
     public override val rollable: Rollable<T, R>,
@@ -49,99 +46,25 @@ public fun <T, R> entryFilter(block: MetaEntryFilterBuilder<T, R>.() -> Unit): M
 }
 
 
-public class MetaWeightedRollableBuilder<T, R> {
+public class MetaWeightedRollableBuilder<T, R>: AbstractMetaRollableBuilder<T, R, MetaWeightedRollable<T, R>, MetaWeightedRollableBuilder<T, R>>() {
 
-    public var identifier: String = ""
+    public var weight: Double by ::initialValue
+    public var minWeight: Double by ::minValue
+    public var maxWeight: Double by ::maxValue
 
-
-    public var rollable: Rollable<T, R> = Rollable.Empty()
-
-
-    public var weight: Double = 1.0
-
-
-    public val filters: MutableSet<MetaEntryFilter<T, R>> = mutableSetOf()
-
-    public var minWeight: Double = 0.0
-
-    public var maxWeight: Double = 100.0
-
-
-    public fun weight(newWeight: Double): MetaWeightedRollableBuilder<T, R> {
-
-        weight = newWeight
-
-        return this
+    public fun weight(weight: Double): MetaWeightedRollableBuilder<T, R> {
+        return value(weight)
     }
-
 
     public fun minWeight(weight: Double): MetaWeightedRollableBuilder<T, R> {
-
-        minWeight = weight
-
-        return this
+        return minimum(weight)
     }
-
 
     public fun maxWeight(weight: Double): MetaWeightedRollableBuilder<T, R> {
-
-        maxWeight = weight
-
-        return this
+        return maximum(weight)
     }
 
-
-    public fun identifier(string: String): MetaWeightedRollableBuilder<T, R> {
-
-        identifier = string
-
-        return this
-    }
-
-
-    public fun id(string: String): MetaWeightedRollableBuilder<T, R> {
-        return identifier(string)
-    }
-
-
-    public fun rollable(newRollable: Rollable<T, R>): MetaWeightedRollableBuilder<T, R> {
-
-        rollable = newRollable
-
-        return this
-    }
-
-
-    public fun rollable(item: R): MetaWeightedRollableBuilder<T, R> {
-        return rollable(Rollable.Single(item))
-    }
-
-
-    public fun rollable(block: () -> R): MetaWeightedRollableBuilder<T, R> {
-        return rollable(Rollable.SingleByFun(block))
-    }
-
-
-
-    public fun buildRollable(block: SingleRollableBuilder<T, R>.() -> Unit): MetaWeightedRollableBuilder<T, R> {
-        return rollable(singleRollable(block))
-    }
-
-
-    public fun addFilter(filter: MetaEntryFilter<T, R>): MetaWeightedRollableBuilder<T, R> {
-
-        filters.add(filter)
-
-        return this
-    }
-
-
-    public fun addFilter(block: MetaEntryFilterBuilder<T, R>.() -> Unit): MetaWeightedRollableBuilder<T, R> {
-        return addFilter(MetaEntryFilterBuilder<T, R>().apply(block).build())
-    }
-
-
-    public fun build(): MetaWeightedRollable<T, R> {
+    public override fun build(): MetaWeightedRollable<T, R> {
         return MetaWeightedRollable<T, R>(
             rollable = rollable,
             identifier = identifier,
@@ -152,6 +75,7 @@ public class MetaWeightedRollableBuilder<T, R> {
         )
     }
 }
+
 
 public class MetaWeightedTable<T, R>(
     tableName: String,
