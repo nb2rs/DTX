@@ -41,7 +41,6 @@ data class OreFilter(
 val ExampleOreNode = metaWeightedTable<Player, Item> {
 
     name("Example Ore Node")
-    ignoreModifier(true)
 
     100.0 weight {
 
