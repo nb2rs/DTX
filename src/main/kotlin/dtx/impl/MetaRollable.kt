@@ -5,8 +5,6 @@ import dtx.core.Rollable
 import dtx.core.RollResult
 import dtx.table.Table
 
-
-
 public interface MetaEntryFilter<T, R> {
 
     public fun filterEntry(modifier: String): Boolean = false
@@ -14,7 +12,6 @@ public interface MetaEntryFilter<T, R> {
 
     public fun modifyEntry(entry: MetaRollable<T, R>)
 }
-
 
 internal class MetaEntryFilterImpl<T, R>(
     val filterFunc: (String) -> Boolean,
