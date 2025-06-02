@@ -121,7 +121,7 @@ public open class MultiChanceTableImpl<T, R>(
 }
 
 
-public open class MultiChanceTableBuilder<T, R>: AbstractTableBuilder<T, R, MultiChanceTableImpl<T, R>, ChanceRollable<T, R>, MultiChanceTableBuilder<T, R>>() {
+public open class MultiChanceTableBuilder<T, R>: AbstractTableBuilder<T, R, MultiChanceTable<T, R>, ChanceRollable<T, R>, MultiChanceTableBuilder<T, R>>() {
 
     override val entries: MutableList<ChanceRollable<T, R>> = mutableListOf()
 
@@ -152,7 +152,7 @@ public open class MultiChanceTableBuilder<T, R>: AbstractTableBuilder<T, R, Mult
         return chance(Rollable.SingleByFun(entryBlock))
     }
 
-    override fun build(): MultiChanceTableImpl<T, R> {
+    override fun build(): MultiChanceTable<T, R> {
         return MultiChanceTableImpl(
             tableName,
             entries,
@@ -167,7 +167,7 @@ public open class MultiChanceTableBuilder<T, R>: AbstractTableBuilder<T, R, Mult
 public inline fun <T, R> multiChanceTable(
     tableName: String = "Unnamed Multi Chance Table",
     block: MultiChanceTableBuilder<T, R>.() -> Unit
-): MultiChanceTableImpl<T, R> {
+): MultiChanceTable<T, R> {
 
     val builder = MultiChanceTableBuilder<T, R>()
     builder.apply { name(tableName) }
