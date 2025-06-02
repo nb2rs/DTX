@@ -36,7 +36,31 @@ public interface Rollable<T, R> {
         }
     }
 
-    public data class ListOf<T, R>(
+    public data class AnyOf<T, R>(
+        public val rollables: List<Rollable<T, R>>,
+        public val predicate: (T) -> Boolean = { true },
+        public val onSelectFun: (T, RollResult<R>) -> Unit = ::defaultOnSelect
+    ): Rollable<T, R> {
+        override fun shouldRoll(target: T): Boolean {
+            return predicate.invoke(target)
+        }
+
+        override fun onSelect(target: T, result: RollResult<R>) {
+            return onSelectFun.invoke(target, result)
+        }
+
+        override fun roll(target: T, otherArgs: ArgMap): RollResult<R> {
+            if (!shouldRoll(target)) {
+                return RollResult.Nothing()
+            }
+
+            val result = rollables.random().roll(target, otherArgs)
+            onSelect(target, result)
+            return result
+        }
+    }
+
+    public data class AllOf<T, R>(
         public val rollables: List<Rollable<T, R>>,
         public val predicate: (T) -> Boolean = { true },
         public val onSelectFun: (T, RollResult<R>) -> Unit = ::defaultOnSelect
@@ -195,8 +219,8 @@ public open class ListRollableBuilder<T, R> {
         return add(Rollable.Single(item))
     }
 
-    public fun build(): Rollable.ListOf<T, R> {
-        return Rollable.ListOf<T, R>(rollables, shouldRollFunc, onSelectFun)
+    public fun build(): Rollable.AllOf<T, R> {
+        return Rollable.AllOf<T, R>(rollables, shouldRollFunc, onSelectFun)
     }
 }
 
