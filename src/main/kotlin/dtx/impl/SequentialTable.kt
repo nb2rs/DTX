@@ -6,6 +6,7 @@ import dtx.core.SingleRollableBuilder
 import dtx.core.RollResult
 import dtx.core.Rollable.Companion.defaultOnSelect
 import dtx.core.singleRollable
+import dtx.table.AbstractTableBuilder
 import dtx.table.Table
 
 
@@ -55,9 +56,6 @@ public class SequentialTable<T, R>(
     }
 
 
-    public override val ignoreModifier: Boolean = true
-
-
     public override val tableEntries: List<Rollable<T, R>> = entries
 
 
@@ -83,33 +81,14 @@ public class SequentialTable<T, R>(
 }
 
 
-public class SequentialTableBuilder<T, R> {
+public class SequentialTableBuilder<T, R>: AbstractTableBuilder<T, R, SequentialTable<T, R>, Rollable<T, R>, SequentialTableBuilder<T, R>>() {
 
-
-    public var tableName: String = "Unnamed Sequential Table"
-
-
-    public var tableValues: MutableList<Rollable<T, R>> = mutableListOf<Rollable<T, R>>()
-
-
-    public var onSelectFunc: (T, RollResult<R>) -> Unit = ::defaultOnSelect
-
+    override val entries: MutableList<Rollable<T, R>> = mutableListOf()
 
     public var onResetFunc: SequentialTable<T, R>.() -> Unit = { }
 
-
-    public fun name(name: String): SequentialTableBuilder<T, R> {
-
-        this.tableName = name
-
-        return this
-    }
-
-
     public fun add(vararg rollables: Rollable<T, R>): SequentialTableBuilder<T, R>  {
-
-        this.tableValues.addAll(rollables)
-
+        rollables.forEach { addEntry(it) }
         return this
     }
 
@@ -117,7 +96,7 @@ public class SequentialTableBuilder<T, R> {
     public fun add(vararg values: R): SequentialTableBuilder<T, R> {
 
         values.forEach { singleValue ->
-            tableValues.add(Rollable.Single(singleValue))
+            add(Rollable.Single(singleValue))
         }
 
         return this
@@ -129,8 +108,8 @@ public class SequentialTableBuilder<T, R> {
     }
 
 
-    public fun build(): SequentialTable<T, R> {
-        return SequentialTable(tableName, tableValues.map { it }, onSelectFunc, onResetFunc)
+    public override fun build(): SequentialTable<T, R> {
+        return SequentialTable(tableName, entries.map { it }, onSelectFunc, onResetFunc)
     }
 }
 
