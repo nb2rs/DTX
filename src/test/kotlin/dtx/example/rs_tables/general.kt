@@ -59,7 +59,7 @@ fun championScroll(type: ChampionType) = singleRollable<Player, Item> {
 }
 
 val longCurvedTable = rsWeightedTable {
-    identifier("Long and Curved Bone table")
+    name("Long and Curved Bone table")
     400 weight Item("long_bone")
     1 weight Item("curved_bone")
 }
