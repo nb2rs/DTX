@@ -4,26 +4,9 @@ import dtx.example.Item
 import dtx.example.Player
 import dtx.core.ArgMap
 import dtx.core.RollResult
-import dtx.core.Rollable
-import dtx.core.SingleRollableBuilder
-import dtx.core.singleRollable
 import dtx.impl.WeightedRollable
-import dtx.impl.WeightedRollableImpl
 import dtx.impl.WeightedTable
-import dtx.impl.WeightedTableBuilder
 import kotlin.random.Random
-
-class RSWeightEntry(
-    val rangeStart: Int,
-    val rangeEnd: Int,
-    rollable: Rollable<Player, Item>
-): WeightedRollable<Player, Item> by WeightedRollableImpl(
-    weight = (rangeEnd - rangeStart).toDouble(),
-    rollable
-) {
-    infix fun checkWeight(value: Int): Boolean = value in rangeStart ..< rangeEnd
-
-}
 
 class RSWeightedTable(
     public val tableIdentifier: String,
@@ -63,14 +46,3 @@ class RSWeightedTable(
         val Empty = RSWeightedTable("", emptyList())
     }
 }
-
-class RSWeightedTableBuilder: WeightedTableBuilder<Player, Item>() {
-    public override fun build(): RSWeightedTable {
-        return RSWeightedTable(
-            tableName,
-            entries
-        )
-    }
-}
-
-fun rsWeightedTable(builder: RSWeightedTableBuilder.() -> Unit): RSWeightedTable = RSWeightedTableBuilder().apply(builder).build()
