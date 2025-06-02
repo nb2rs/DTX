@@ -5,6 +5,7 @@ import dtx.core.Rollable
 import dtx.core.SingleRollableBuilder
 import dtx.core.RollResult
 import dtx.core.Rollable.Companion.defaultOnSelect
+import dtx.table.AbstractTableBuilder
 import dtx.table.Table
 import kotlin.properties.ReadWriteProperty
 import kotlin.random.Random
@@ -17,17 +18,24 @@ public interface ExhaustiveRollable<T, R>: Rollable<T, R> {
     public fun isExhausted(): Boolean
 
     public fun resetExhaustible(): Unit
+
+    public fun remainingRolls(): Int
 }
 
-public data class ExhaustiveRollableEntry<T, R>(
-    public val entry: Rollable<T, R>,
+public interface WeightedExhaustiveRollable<T, R>: ExhaustiveRollable<T, R>, WeightedRollable<T, R> {
+
+    override val weight: Double get() = remainingRolls().toDouble()
+}
+
+public open class ExhaustiveRollableImpl<T, R>(
+    public val rollable: Rollable<T, R>,
     public val totalRolls: Int,
-    public val onExhaustFunc: ExhaustiveRollableEntry<T, R>.(T) -> Unit = { }
+    public val onExhaustFunc: ExhaustiveRollable<T, R>.(T) -> Unit
 ): ExhaustiveRollable<T, R> {
 
     private var rollsRemaining: Int = totalRolls
 
-    public fun getRemainingRolls(): Int {
+    public override fun remainingRolls(): Int {
         return rollsRemaining
     }
 
@@ -45,10 +53,11 @@ public data class ExhaustiveRollableEntry<T, R>(
             return RollResult.Nothing()
         }
 
+        val result = rollable.roll(target, otherArgs)
         rollsRemaining--
-        val result = entry.roll(target, otherArgs)
 
-        if (rollsRemaining == 0) {
+        onSelect(target, result)
+        if (isExhausted()) {
             onExhaust(target)
         }
 
@@ -58,6 +67,31 @@ public data class ExhaustiveRollableEntry<T, R>(
     public override fun resetExhaustible() {
         rollsRemaining = totalRolls
     }
+}
+
+public class WeightedExhastiveRollableImpl<T, R>(
+    rollable: Rollable<T, R>,
+    totalRolls: Int,
+    onExhaustFunc: WeightedExhaustiveRollable<T, R>.(T) -> Unit
+): WeightedExhaustiveRollable<T, R>, ExhaustiveRollableImpl<T, R>(
+    rollable,
+    totalRolls,
+    onExhaustFunc as ExhaustiveRollable<T, R>.(T) -> Unit
+) {
+    override fun roll(target: T, otherArgs: ArgMap): RollResult<R> {
+        return super<ExhaustiveRollableImpl>.roll(target, otherArgs)
+    }
+}
+
+public fun <T, R> ExhaustiveRollable<T, R>.toWeightedExhaustiveRollable(): WeightedExhaustiveRollable<T, R> = object: WeightedExhaustiveRollable<T, R> {
+
+    override fun isExhausted(): Boolean = this@toWeightedExhaustiveRollable.isExhausted()
+
+    override fun resetExhaustible() = this@toWeightedExhaustiveRollable.resetExhaustible()
+
+    override fun remainingRolls(): Int = this@toWeightedExhaustiveRollable.remainingRolls()
+
+    override val rollable: Rollable<T, R> get() = this@toWeightedExhaustiveRollable
 }
 
 internal class PositiveInt(
@@ -115,42 +149,62 @@ public class ExhaustiveSingleRollableBuilder<T, R>: SingleRollableBuilder<T, R>(
         return this
     }
 
-    public override fun build(): Rollable<T, R> {
+    public override fun build(): ExhaustiveRollable<T, R> {
 
         resultSelector?.let {
-            return ExhaustiveRollableEntry<T, R>(Rollable.SingleByFun<T, R>(it), totalRolls, onExhaust)
+            return ExhaustiveRollableImpl<T, R>(Rollable.SingleByFun<T, R>(it), totalRolls, onExhaust)
         }
 
         result?.let {
-            return ExhaustiveRollableEntry<T, R>(Rollable.Single<T, R>(it), totalRolls, onExhaust)
+            return ExhaustiveRollableImpl<T, R>(Rollable.Single<T, R>(it), totalRolls, onExhaust)
         }
 
         error("Cannot build ExhaustiveSingleRollable with null result and null resultSelector")
     }
 }
 
-public open class ExhaustiveTable<T, R>(
+public interface ExhaustiveTable<T, R>: Table<T, R>, ExhaustiveRollable<T, R> {
+
+    public override val tableEntries: List<ExhaustiveRollable<T, R>>
+
+    public val rollableEntries: List<ExhaustiveRollable<T, R>>
+        get() = tableEntries.filterNot(ExhaustiveRollable<T, R>::isExhausted)
+
+    override fun remainingRolls(): Int {
+        return tableEntries.sumOf(ExhaustiveRollable<T, R>::remainingRolls)
+    }
+
+}
+
+public open class ExhaustiveTableImpl<T, R>(
     public val tableName: String,
-    initialItems: List<ExhaustiveRollableEntry<T, R>>,
+    initialItems: List<ExhaustiveRollable<T, R>>,
     private val onSelectFunc: (T, RollResult<R>) -> Unit = ::defaultOnSelect,
-    private val onExhaustFunc: ExhaustiveTable<T, R>.() -> Unit = { }
-): Table<T, R>, ExhaustiveRollable<T, R> {
+    private val onExhaustFunc: ExhaustiveTableImpl<T, R>.() -> Unit = { }
+): ExhaustiveTable<T, R> {
 
-    override val ignoreModifier: Boolean = true
+    override val tableEntries: List<ExhaustiveRollable<T, R>> = initialItems.map { it }
 
-    override val tableEntries: List<ExhaustiveRollableEntry<T, R>> = initialItems.map { it.copy() }
+    override val rollableEntries: List<ExhaustiveRollable<T, R>>
+        get() = tableEntries.filterNot(ExhaustiveRollable<T, R>::isExhausted)
 
     override fun onSelect(target: T, result: RollResult<R>) {
         return onSelectFunc(target, result)
     }
 
+    override fun remainingRolls(): Int = tableEntries.sumOf { it.remainingRolls() }
+
     public fun reset(): Unit {
-        tableEntries.forEach(ExhaustiveRollableEntry<T, R>::resetExhaustible)
+        tableEntries.forEach(ExhaustiveRollable<T, R>::resetExhaustible)
     }
 
     public override fun roll(target: T, otherArgs: ArgMap): RollResult<R> {
 
-        val rollableItems = tableEntries.filter { it.getRemainingRolls() > 0 }
+        if (isExhausted()) {
+            return RollResult.Nothing()
+        }
+
+        val rollableItems = rollableEntries
 
         val rolled = rollableItems.random()
         val result = rolled.roll(target, otherArgs)
@@ -172,46 +226,25 @@ public open class ExhaustiveTable<T, R>(
     }
 }
 
-public open class ExhaustiveTableBuilder<T, R> {
+public open class ExhaustiveTableBuilder<T, R>: AbstractTableBuilder<T, R, ExhaustiveTableImpl<T, R>, ExhaustiveRollable<T, R>, ExhaustiveTableBuilder<T, R>>() {
 
-    public var tableName: String = "Unnamed Exhaustive Table"
+    override val entries: MutableList<ExhaustiveRollable<T, R>> = mutableListOf<ExhaustiveRollable<T, R>>()
 
-    protected val items: MutableList<ExhaustiveRollableEntry<T, R>> = mutableListOf<ExhaustiveRollableEntry<T, R>>()
+    public var onExhaustFunc: ExhaustiveTableImpl<T, R>.() -> Unit = { }
 
-    public var onSelect: (T, RollResult<R>) -> Unit = ::defaultOnSelect
+    public fun onExhaust(block: ExhaustiveTableImpl<T, R>.() -> Unit): ExhaustiveTableBuilder<T, R> {
 
-    public var onExhaust: ExhaustiveTable<T, R>.() -> Unit = { }
-
-    public fun onSelect(block: (T, RollResult<R>) -> Unit): ExhaustiveTableBuilder<T, R> {
-
-        onSelect = block
+        onExhaustFunc = block
 
         return this
     }
 
-    public fun onExhaust(block: ExhaustiveTable<T, R>.() -> Unit): ExhaustiveTableBuilder<T, R> {
-
-        onExhaust = block
-
-        return this
-    }
-
-    public fun name(string: String): ExhaustiveTableBuilder<T, R> {
-
-        tableName = string
-
-        return this
-    }
-
-    public infix fun Int.rolls(entry: ExhaustiveRollableEntry<T, R>): ExhaustiveTableBuilder<T, R> {
-
-        items.add(entry.copy(totalRolls = this))
-
-        return this@ExhaustiveTableBuilder
+    public infix fun Int.rolls(entry: ExhaustiveRollable<T, R>): ExhaustiveTableBuilder<T, R> {
+        return addEntry(entry)
     }
 
     public infix fun Int.rolls(entry: Rollable<T, R>): ExhaustiveTableBuilder<T, R> {
-        return rolls(ExhaustiveRollableEntry(entry, this))
+        return rolls(ExhaustiveRollableImpl(entry, this) { })
     }
 
     public infix fun Int.rolls(item: R): ExhaustiveTableBuilder<T, R> {
@@ -219,18 +252,24 @@ public open class ExhaustiveTableBuilder<T, R> {
     }
 
     public inline infix fun Int.rolls(block: ExhaustiveSingleRollableBuilder<T, R>.() -> Unit): ExhaustiveTableBuilder<T, R> {
-        return rolls(ExhaustiveSingleRollableBuilder<T, R>().apply(block).build())
+
+        val built = ExhaustiveSingleRollableBuilder<T, R>()
+            .apply { this.totalRolls = this@rolls }
+            .apply(block)
+            .build()
+
+        return rolls(built)
     }
 
-    public open fun build(): ExhaustiveTable<T, R> {
-        return ExhaustiveTable(tableName, items, onSelect, onExhaust)
+    public override fun build(): ExhaustiveTableImpl<T, R> {
+        return ExhaustiveTableImpl(tableName, entries, onSelectFunc, onExhaustFunc)
     }
 }
 
 public inline fun <T, R> uniformExhaustiveTable(
     tableName: String = "Unnamed Exhaustive Table",
     block: ExhaustiveTableBuilder<T, R>.() -> Unit
-): ExhaustiveTable<T, R> {
+): ExhaustiveTableImpl<T, R> {
 
     val builder = ExhaustiveTableBuilder<T, R>()
     builder.apply { name(tableName) }
@@ -239,39 +278,42 @@ public inline fun <T, R> uniformExhaustiveTable(
     return builder.build()
 }
 
-public class WeightedExhaustiveTable<T, R>(
+public class WeightedExhaustiveTableImpl<T, R>(
     tableName: String = "Unnamed Exhaustive Table",
-    initialItems: List<ExhaustiveRollableEntry<T, R>>,
+    override val tableEntries: List<WeightedExhaustiveRollable<T, R>>,
     onSelectFunc: (T, RollResult<R>) -> Unit = ::defaultOnSelect,
-): ExhaustiveTable<T, R>(tableName, initialItems, onSelectFunc) {
+    onExhaustFunc: WeightedExhaustiveTableImpl<T, R>.() -> Unit = { },
+): WeightedTable<T, R>, ExhaustiveTableImpl<T, R>(
+    tableName,
+    tableEntries,
+    onSelectFunc,
+    onExhaustFunc as ExhaustiveTableImpl<T, R>.() -> Unit
+) {
+
+    override val maxRoll: Double get() = tableEntries.sumOf { it.remainingRolls() }.toDouble()
+
+    override val rollableEntries: List<WeightedExhaustiveRollable<T, R>>
+        get() = super<ExhaustiveTableImpl>.rollableEntries as List<WeightedExhaustiveRollable<T, R>>
 
     public override fun roll(target: T, otherArgs: ArgMap): RollResult<R> {
 
-        val rollableItems = tableEntries
-            .filter { it.getRemainingRolls() > 0 }
-
-        val weightedItems = rollableItems
-            .map { it.getRemainingRolls().toDouble() to it }
-            .sortedBy { it.first }
-
-        var rolledWeight = Random.nextDouble(0.0, weightedItems.sumOf { it.first })
-
-        weightedItems.forEach { (weight, item) ->
-
-            rolledWeight -= weight
-
-            if (rolledWeight <= 0.0) {
-
-                val result = item.roll(target, otherArgs)
-                onSelect(target, result)
-
-                return result
-            }
+        if (isExhausted()) {
+            return RollResult.Nothing()
         }
 
-        val lastItem = weightedItems.last()
-        val result = lastItem.second.roll(target, otherArgs)
+        val weightedItems = rollableEntries
+            .sortedBy(ExhaustiveRollable<T, R>::remainingRolls)
+
+        var rolledWeight = Random.nextDouble(0.0, maxRoll)
+
+        val rollMod = rollModifier(getBaseDropRate(target))
+        val pickedEntry = getWeightedEntry<WeightedExhaustiveRollable<T, R>>(rollMod, rolledWeight, weightedItems)
+        val result = pickedEntry.roll(target, otherArgs)
         onSelect(target, result)
+
+        if (isExhausted()) {
+            onExhaust(target)
+        }
 
         return result
     }
@@ -279,20 +321,24 @@ public class WeightedExhaustiveTable<T, R>(
 
 public class WeightedExhaustiveTableBuilder<T, R>: ExhaustiveTableBuilder<T, R>() {
 
-    override fun build(): WeightedExhaustiveTable<T, R> {
-        return WeightedExhaustiveTable<T, R>(tableName, items, onSelect)
+    override fun build(): WeightedExhaustiveTableImpl<T, R> {
+        return WeightedExhaustiveTableImpl<T, R>(
+            tableName,
+            entries.map { it.toWeightedExhaustiveRollable() },
+            onSelectFunc,
+            onExhaustFunc
+        )
     }
 }
 
 public inline fun <T, R> weightedExhaustiveTable(
     tableName: String = "Unnamed Weighted Exhaustive Table",
     block: ExhaustiveTableBuilder<T, R>.() -> Unit
-): WeightedExhaustiveTable<T, R> {
+): WeightedExhaustiveTableImpl<T, R> {
 
     val builder = WeightedExhaustiveTableBuilder<T, R>()
     builder.apply { name(tableName) }
     builder.apply(block)
 
     return builder.build()
-
 }
