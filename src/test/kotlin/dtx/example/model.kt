@@ -21,7 +21,7 @@ enum class Gender {
     PlatelegEnjoyer, PlateskirtEnthusiast;
 }
 
-class Player(
+data class Player(
     val username: String,
     var dropRateBonus: Double = 0.0,
     val bank: Collection<Item> = listOf(),
@@ -35,11 +35,11 @@ class Player(
     }.toMutableMap()
 ) {
 
-    fun isWearing(item: Item): Boolean = inventory.any { it.itemId == item.itemId }
+    fun isWearing(item: Item): Boolean = equipment.any { it.itemId == item.itemId }
 
-    fun isWearing(itemId: String): Boolean = inventory.any { it.itemId == itemId }
+    fun isWearing(itemId: String): Boolean = equipment.any { it.itemId == itemId }
 
-    fun posesses(item: Item): Boolean = item in inventory || item in bank
+    fun posesses(item: Item): Boolean = item in inventory || item in bank || item in equipment
 
     fun isOnMemberWorld(): Boolean = currentWorld > 1
 
