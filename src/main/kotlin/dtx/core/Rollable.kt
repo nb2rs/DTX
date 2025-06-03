@@ -24,7 +24,7 @@ public interface Rollable<T, R> {
             return 0.0
         }
 
-        public data object Empty: Rollable<Any?, Any?> {
+        public data object EmptyRollable: Rollable<Any?, Any?> {
 
             override fun shouldRoll(target: Any?): Boolean {
                 return false
@@ -40,7 +40,7 @@ public interface Rollable<T, R> {
         }
 
         public fun <T, R> Empty(): Rollable<T, R> {
-            return Empty as Rollable<T, R>
+            return EmptyRollable as Rollable<T, R>
         }
 
         public fun <T, R> AnyOf(
