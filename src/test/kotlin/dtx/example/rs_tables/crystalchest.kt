@@ -13,7 +13,7 @@ val dragonstoneTable = rsGuaranteedTable<Player, Item> {
 
 val crystalChestMain = rsWeightedTable<Player, Item> {
 
-    17 weight Rollable.Empty()
+    17 weight Item("nothing")
 
     34 weight rsGuaranteedTable {
         add(Item("spinach_roll"))
