@@ -1,20 +1,31 @@
 package dtx.table
 
 import dtx.core.ArgMap
+import dtx.core.OnSelect
 import dtx.core.RollResult
 import dtx.core.Rollable
 import dtx.core.SingleRollableBuilder
 import dtx.core.Rollable.Companion.defaultOnSelect
+import dtx.core.ShouldRoll
+import dtx.core.defaultShouldRoll
 import dtx.core.singleRollable
-
 
 public class UniformTable<T, R>(
     public val tableName: String = "",
     public override val tableEntries: List<Rollable<T, R>>,
-    public val onSelectFunc: (T, RollResult<R>) -> Unit = ::defaultOnSelect
+    private val shouldRollFunc: ShouldRoll<T> = ::defaultShouldRoll,
+    private val onSelectFunc: OnSelect<T, R> = ::defaultOnSelect
 ): Table<T, R> {
 
+    override fun shouldRoll(target: T): Boolean {
+        return shouldRollFunc(target)
+    }
+
     public override fun roll(target: T, otherArgs: ArgMap): RollResult<R> {
+
+        if (!shouldRoll(target)) {
+            return RollResult.Nothing()
+        }
 
         val result = tableEntries.random().roll(target, otherArgs)
         onSelectFunc(target, result)
@@ -22,15 +33,12 @@ public class UniformTable<T, R>(
         return result
     }
 
-
     public override fun toString(): String = "UniformTable[$tableName]"
 }
-
 
 public open class UniformTableBuilder<T, R>: AbstractTableBuilder<T, R, UniformTable<T, R>, Rollable<T, R>, UniformTableBuilder<T, R>>() {
 
     override val entries: MutableList<Rollable<T, R>> = mutableListOf<Rollable<T, R>>()
-
 
     public fun add(vararg valuesToAdd: R): UniformTableBuilder<T, R> {
         
@@ -40,7 +48,6 @@ public open class UniformTableBuilder<T, R>: AbstractTableBuilder<T, R, UniformT
         
         return this
     }
-
 
     public fun add(vararg valuesToAdd: Rollable<T, R>): UniformTableBuilder<T, R> {
         
@@ -57,7 +64,6 @@ public open class UniformTableBuilder<T, R>: AbstractTableBuilder<T, R, UniformT
         return this
     }
 
-
     public override fun build(): UniformTable<T, R> {
         return UniformTable<T, R>(
             tableName = tableName,
@@ -66,7 +72,6 @@ public open class UniformTableBuilder<T, R>: AbstractTableBuilder<T, R, UniformT
         )
     }
 }
-
 
 public fun <T, R> uniformTable(
     tableName: String = "Unnamed Uniform Table",

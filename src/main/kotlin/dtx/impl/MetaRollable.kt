@@ -9,7 +9,6 @@ public interface MetaEntryFilter<T, R> {
 
     public fun filterEntry(modifier: String): Boolean = false
 
-
     public fun modifyEntry(entry: MetaRollable<T, R>)
 }
 
@@ -18,21 +17,22 @@ internal class MetaEntryFilterImpl<T, R>(
     val modifyFunc: (MetaRollable<T, R>) -> Unit
 ): MetaEntryFilter<T, R> {
 
-    override fun filterEntry(modifier: String): Boolean = filterFunc(modifier)
+    override fun filterEntry(modifier: String): Boolean {
+        return filterFunc(modifier)
+    }
 
-    override fun modifyEntry(entry: MetaRollable<T, R>) = modifyFunc(entry)
+    override fun modifyEntry(entry: MetaRollable<T, R>) {
+        return modifyFunc(entry)
+    }
 }
 
 
 
 public class MetaEntryFilterBuilder<T, R> {
 
-
     public var filterFunc: (String) -> Boolean = { false }
 
-
     public var modifyFunc: (MetaRollable<T, R>) -> Unit = { }
-
 
     public fun filter(func: (String) -> Boolean): MetaEntryFilterBuilder<T, R> {
 
@@ -58,20 +58,23 @@ public class MetaEntryFilterBuilder<T, R> {
 
 public interface MetaRollable<T, R>: Rollable<T, R> {
 
-
     public val rollable: Rollable<T, R>
-
 
     public val identifier: String
 
-
     public val metaEntryFilters: MutableSet<MetaEntryFilter<T, R>>
-
 
     public val parentTable: MetaTable<T, R>
 
+    override fun shouldRoll(target: T): Boolean {
+        return rollable.shouldRoll(target)
+    }
 
     public override fun roll(target: T, otherArgs: ArgMap): RollResult<R> {
+
+        if (!shouldRoll(target)) {
+            return RollResult.Nothing()
+        }
 
         val result = rollable.roll(target, otherArgs)
 

@@ -1,10 +1,15 @@
 package dtx.impl
 
 import dtx.core.ArgMap
+import dtx.core.BaseDroprate
+import dtx.core.OnSelect
+import dtx.core.RollModifier
 import dtx.core.Rollable
 import dtx.core.RollResult
 import dtx.core.Rollable.Companion.defaultOnSelect
 import dtx.core.Rollable.Companion.defaultGetBaseDropRate
+import dtx.core.ShouldRoll
+import dtx.core.defaultShouldRoll
 import dtx.table.AbstractTableBuilder
 import dtx.table.Table.Companion.defaultRollModifier
 import dtx.util.NoTransform
@@ -80,11 +85,12 @@ public class MetaWeightedRollableBuilder<T, R>: AbstractMetaRollableBuilder<T, R
 public class MetaWeightedTable<T, R>(
     tableName: String,
     entries: List<MetaWeightedRollable<T, R>>,
-    rollModifierFunc: (Double) -> Double = ::defaultRollModifier,
-    getTargetDropRate: (T) -> Double = ::defaultGetBaseDropRate,
-    onSelectFunc: (T, RollResult<R>) -> Unit = ::defaultOnSelect
+    shouldRollFunc: ShouldRoll<T> = ::defaultShouldRoll,
+    rollModifierFunc: RollModifier<T> = ::defaultRollModifier,
+    getTargetDropRate: BaseDroprate<T> = ::defaultGetBaseDropRate,
+    onSelectFunc: OnSelect<T, R> = ::defaultOnSelect
 ): MetaTable<T, R>, WeightedTableImpl<T, R>(
-    tableName, entries,
+    tableName, entries, shouldRollFunc,
     rollModifierFunc, getTargetDropRate, onSelectFunc
 ) {
     public override val tableEntries: MutableList<MetaWeightedRollable<T, R>> = entries
@@ -142,7 +148,7 @@ public class MetaWeightedTableBuilder<T, R>: AbstractTableBuilder<T, R, MetaWeig
     }
 
     public override fun build(): MetaWeightedTable<T, R> {
-        return MetaWeightedTable(tableName, entries, getRollModFunc, getDropRateFunc, onSelectFunc)
+        return MetaWeightedTable(tableName, entries, shouldRollFunc, getRollModFunc, getDropRateFunc, onSelectFunc)
     }
 }
 

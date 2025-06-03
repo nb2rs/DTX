@@ -1,16 +1,14 @@
 package dtx.example.rs_tables
 
-import dtx.example.Item
-import dtx.example.Player
 import dtx.core.Rollable
 import dtx.impl.WeightedRollable
 import dtx.impl.WeightedRollableImpl
 
-class RSWeightEntry(
+class RSWeightEntry<T, R>(
     val rangeStart: Int,
     val rangeEnd: Int,
-    rollable: Rollable<Player, Item>
-): WeightedRollable<Player, Item> by WeightedRollableImpl(
+    rollable: Rollable<T, R>
+): WeightedRollable<T, R> by WeightedRollableImpl(
     weight = (rangeEnd - rangeStart).toDouble(),
     rollable
 ) {

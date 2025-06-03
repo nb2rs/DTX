@@ -1,16 +1,24 @@
 package dtx.example.rs_tables
 
-import dtx.example.Item
-import dtx.example.Player
 import dtx.impl.WeightedTableBuilder
 
-class RSWeightedTableBuilder: WeightedTableBuilder<Player, Item>() {
-    public override fun build(): RSWeightedTable {
+class RSWeightedTableBuilder<T, R>: WeightedTableBuilder<T, R>() {
+
+    public override fun build(): RSWeightedTable<T, R> {
         return RSWeightedTable(
             tableName,
-            entries
+            entries,
+            getDropRateFunc,
+            getRollModFunc,
+            shouldRollFunc
         )
     }
 }
 
-fun rsWeightedTable(builder: RSWeightedTableBuilder.() -> Unit): RSWeightedTable = RSWeightedTableBuilder().apply(builder).build()
+fun <T, R> rsWeightedTable(block: RSWeightedTableBuilder<T, R>.() -> Unit): RSWeightedTable<T, R> {
+
+    val builder = RSWeightedTableBuilder<T, R>()
+    builder.apply(block)
+
+    return builder.build()
+}

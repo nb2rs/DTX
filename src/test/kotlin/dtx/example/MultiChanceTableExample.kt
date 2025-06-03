@@ -4,7 +4,6 @@ import dtx.core.RollResult
 import dtx.impl.multiChanceTable
 import dtx.impl.percent
 import dtx.impl.weightedTable
-import dtx.example.rs_tables.sendMessage
 
 /**
  * Simple chicken example with a twist
