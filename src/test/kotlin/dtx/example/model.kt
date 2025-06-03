@@ -17,6 +17,10 @@ fun Item(itemId: String, amount: RandomIntRange) = singleRollable<Player, Item> 
 
 inline fun Item(itemId: String, amountRange: IntRange) = Item(itemId, amountRange.toRandomIntRange())
 
+enum class Gender {
+    PlatelegEnjoyer, PlateskirtEnthusiast;
+}
+
 class Player(
     val username: String,
     var dropRateBonus: Double = 0.0,
@@ -24,6 +28,7 @@ class Player(
     val inventory: Collection<Item> = listOf(),
     var questPoints: Int = 0,
     var currentWorld: Int = 1,
+    var gender: Gender = Gender.PlateskirtEnthusiast,
     val hasScrollCompleted: MutableMap<ChampionType, Boolean> = buildMap {
         ChampionType.entries.forEach { put(it, false) }
     }.toMutableMap()
