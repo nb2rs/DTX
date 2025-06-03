@@ -1,16 +1,22 @@
 package dtx.example.rs_tables
 
 import dtx.core.ArgMap
+import dtx.core.BaseDroprate
+import dtx.core.RollModifier
 import dtx.core.RollResult
+import dtx.core.Rollable
 import dtx.core.ShouldRoll
 import dtx.core.defaultShouldRoll
 import dtx.impl.WeightedRollable
 import dtx.impl.WeightedTable
+import dtx.table.Table
 import kotlin.random.Random
 
 class RSWeightedTable<T, R>(
     public val tableIdentifier: String,
     entries: List<WeightedRollable<T, R>>,
+    private val baseDropRateFunc: BaseDroprate<T> = Rollable.Companion::defaultGetBaseDropRate,
+    private val rollModFunc: RollModifier<T> = Table.Companion::defaultRollModifier,
     private val shouldRollFunc: ShouldRoll<T> = ::defaultShouldRoll
 ): RSTable<T, R>, WeightedTable<T, R> {
 
@@ -34,6 +40,14 @@ class RSWeightedTable<T, R>(
         return shouldRollFunc(target)
     }
 
+    override fun getBaseDropRate(target: T): Double {
+        return baseDropRateFunc(target)
+    }
+
+    override fun rollModifier(target: T, modByFlatAmount: Double): Double {
+        return rollModFunc(target, modByFlatAmount)
+    }
+
     override fun roll(target: T, otherArgs: ArgMap): RollResult<R> {
 
         if (!shouldRoll(target)) {
@@ -48,7 +62,7 @@ class RSWeightedTable<T, R>(
             return tableEntries.first().roll(target, otherArgs)
         }
 
-        val roll = Random.nextInt(0, maxRoll.toInt())
+        val roll = Random.nextInt(0, maxRoll.toInt()) + rollModifier(target, 0.0).toInt()
 
         tableEntries.forEach {
 
@@ -56,6 +70,7 @@ class RSWeightedTable<T, R>(
                 return it.roll(target, otherArgs)
             }
         }
+
         return RollResult.Nothing()
     }
 

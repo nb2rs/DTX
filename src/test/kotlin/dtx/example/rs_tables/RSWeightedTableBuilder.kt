@@ -8,6 +8,8 @@ class RSWeightedTableBuilder<T, R>: WeightedTableBuilder<T, R>() {
         return RSWeightedTable(
             tableName,
             entries,
+            getDropRateFunc,
+            getRollModFunc,
             shouldRollFunc
         )
     }
