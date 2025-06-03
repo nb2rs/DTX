@@ -47,7 +47,7 @@ public abstract class AbstractTableBuilder<
         return this as BuilderType
     }
 
-    public open fun getRollModifier(newRollModifier: RollModifier<Target>): BuilderType {
+    public open fun modifyRoll(newRollModifier: RollModifier<Target>): BuilderType {
 
         this.getRollModFunc = newRollModifier
 

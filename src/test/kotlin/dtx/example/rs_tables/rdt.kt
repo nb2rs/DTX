@@ -8,7 +8,7 @@ val ringOfWealth = Item("ring_of_wealth")
 
 val megaRareDropTable = rsWeightedTable<Player, Item> {
 
-    getRollModifier { player, baseRoll ->
+    modifyRoll { player, baseRoll ->
         baseRoll + if (player.isWearing(ringOfWealth)) {
             113.0 // Weight of the 'Nothing' drop
         } else {
@@ -24,7 +24,7 @@ val megaRareDropTable = rsWeightedTable<Player, Item> {
 
 val gemDropTable = rsWeightedTable<Player, Item> {
 
-    getRollModifier { player, baseRoll ->
+    modifyRoll { player, baseRoll ->
         baseRoll + if(player.isWearing(ringOfWealth)) {
             63.0
         } else {
