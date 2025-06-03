@@ -1,5 +1,6 @@
 package dtx.impl
 
+import dtx.core.ResultSelector
 import dtx.core.Rollable
 import dtx.core.SingleRollableBuilder
 import dtx.core.singleRollable
@@ -17,16 +18,24 @@ public open class WeightedTableBuilder<T, R>: AbstractTableBuilder<T, R, Weighte
         return weight(Rollable.Single(entry))
     }
 
+    public infix fun Double.weightBy(selector: ResultSelector<T, R>): WeightedTableBuilder<T, R> {
+        return weight(Rollable.SingleByFun(selector))
+    }
+
     public infix fun Double.weight(block: SingleRollableBuilder<T, R>.() -> Unit): WeightedTableBuilder<T, R> {
         return weight(singleRollable(block))
     }
 
     public inline infix fun Int.weight(rollable: Rollable<T, R>): WeightedTableBuilder<T, R>{
-        return toDouble() weight rollable
+        return toDouble().weight(rollable)
     }
 
     public inline infix fun Int.weight(item: R): WeightedTableBuilder<T, R> {
         return weight(Rollable.Single(item))
+    }
+
+    public infix fun Int.weightBy(selector: ResultSelector<T, R>): WeightedTableBuilder<T, R> {
+        return toDouble().weightBy(selector)
     }
 
     public infix fun Int.weight(block: SingleRollableBuilder<T, R>.() -> Unit): WeightedTableBuilder<T, R> {
