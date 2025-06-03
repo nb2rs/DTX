@@ -1,17 +1,14 @@
 package dtx.example.rs_tables
 
-import dtx.example.Item
-import dtx.example.Player
-import dtx.core.ArgMap
 import dtx.core.RollResult
 import dtx.core.Rollable
+import dtx.core.ShouldRoll
 import dtx.core.SingleRollableBuilder
-import dtx.core.flattenToList
+import dtx.core.defaultShouldRoll
 import dtx.core.singleRollable
 import dtx.impl.ChanceRollableImpl
 import dtx.impl.MultiChanceTable
 import dtx.impl.MultiChanceTableImpl
-import kotlin.collections.forEach
 
 
 /**
@@ -19,53 +16,58 @@ import kotlin.collections.forEach
  * Entries are all 100% chance because this table is guaranteed to roll on everything.
  * Whether every [Rollable] will give a non-[RollResult.Nothing] result is not guaranteed, just that the [Rollable] will be rolled
  */
-class RSGuaranteedTable(
+class RSGuaranteedTable<T, R>(
     tableIdentifier: String,
-    tableEntries: Collection<Rollable<Player, Item>>,
-): RSTable, MultiChanceTable<Player, Item> by MultiChanceTableImpl(
+    tableEntries: Collection<Rollable<T, R>>,
+    shouldRollFunc: ShouldRoll<T> = ::defaultShouldRoll,
+): RSTable<T, R>, MultiChanceTable<T, R> by MultiChanceTableImpl(
     tableIdentifier,
-    tableEntries.map { ChanceRollableImpl(100.0, it) }
+    tableEntries.map { ChanceRollableImpl(100.0, it) },
+    shouldRollFunc
 ) {
     companion object {
-        val Empty = RSGuaranteedTable("", emptyList())
+        val EmptyTable = RSGuaranteedTable<Any?, Any?>("", emptyList()) { false }
+        fun <T, R> Empty() = EmptyTable as RSGuaranteedTable<T, R>
     }
 }
 
-public class RSGuaranteedTableBuilder {
+public class RSGuaranteedTableBuilder<T, R> {
 
     public var tableIdentifier: String = ""
 
-    private val tableEntries = mutableListOf<Rollable<Player, Item>>()
+    private val tableEntries = mutableListOf<Rollable<T, R>>()
 
-    fun identifier(identifier: String): RSGuaranteedTableBuilder {
+    fun identifier(identifier: String): RSGuaranteedTableBuilder<T, R> {
         tableIdentifier = identifier
         return this
     }
 
-    fun add(rollable: Rollable<Player, Item>): RSGuaranteedTableBuilder {
+    fun add(rollable: Rollable<T, R>): RSGuaranteedTableBuilder<T, R> {
         tableEntries.add(rollable)
         return this
     }
 
-    fun add(block: SingleRollableBuilder<Player, Item>.() -> Unit): RSGuaranteedTableBuilder {
+    fun add(block: SingleRollableBuilder<T, R>.() -> Unit): RSGuaranteedTableBuilder<T, R> {
         val rollable = singleRollable(block)
         tableEntries.add(rollable)
         return this
     }
 
-    fun add(item: Item): RSGuaranteedTableBuilder {
+    fun add(item: R): RSGuaranteedTableBuilder<T, R> {
         add(Rollable.Single(item))
         return this
     }
 
-    fun build(): RSGuaranteedTable = RSGuaranteedTable(
+    fun build(): RSGuaranteedTable<T, R> = RSGuaranteedTable(
         tableIdentifier = tableIdentifier,
         tableEntries = tableEntries
     )
 }
 
-fun rsGuaranteedTable(builder: RSGuaranteedTableBuilder.() -> Unit): RSGuaranteedTable {
-    val builder = RSGuaranteedTableBuilder()
-    builder.builder()
+fun <T, R> rsGuaranteedTable(block: RSGuaranteedTableBuilder<T, R>.() -> Unit): RSGuaranteedTable<T, R> {
+
+    val builder = RSGuaranteedTableBuilder<T, R>()
+    builder.apply(block)
+
     return builder.build()
 }

@@ -12,10 +12,13 @@ class RSWeightRollable(
 ): Rollable<Player, Item> by rollable {
 
     fun rsRoll(target: Player): RollResult<Item> {
+
         val rolled = Random.nextInt(0, weight)
+
         if (rolled == 0) {
             return rollable.roll(target)
         }
+
         return RollResult.Nothing()
     }
 }

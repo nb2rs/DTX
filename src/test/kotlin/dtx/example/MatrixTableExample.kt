@@ -2,7 +2,6 @@ package dtx.example
 
 import dtx.core.*
 import dtx.impl.matrixTable
-import dtx.example.rs_tables.sendMessage
 
 /**
  * Quirky way to do uniform table.

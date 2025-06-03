@@ -1,22 +1,14 @@
-package dtx.example
+package dtx.example.rs_tables
 import dtx.core.ArgMap
 import dtx.core.RollResult
 import dtx.core.flatten
 import dtx.core.singleRollable
-import dtx.example.rs_tables.ChampionType
-import dtx.example.rs_tables.ClueDifficulty
-import dtx.example.rs_tables.RSDropTable
-import dtx.example.rs_tables.RSTable
-import dtx.example.rs_tables.championScroll
-import dtx.example.rs_tables.clueScrollDrop
-import dtx.example.rs_tables.longCurvedTable
-import dtx.example.rs_tables.rsGuaranteedTable
-import dtx.example.rs_tables.rsTertiaryTable
-import dtx.example.rs_tables.rsWeightedTable
+import dtx.example.Item
+import dtx.example.Player
+import dtx.example.examplePlayer
+import dtx.example.randTo
 
-inline fun Item(itemId: String, amountRange: IntRange) = Item(itemId, amountRange.toRandomIntRange())
-
-val oborGuaranteed = rsGuaranteedTable {
+val oborGuaranteed = rsGuaranteedTable<Player, Item> {
     identifier("Obor guaranteed drops")
     add(Item("big_bones"))
     add(clueScrollDrop(ClueDifficulty.Beginner))
@@ -25,7 +17,7 @@ val oborGuaranteed = rsGuaranteedTable {
 
 val oborUnique = singleRollable<Player, Item> { result(Item("hill_giant_club")) }
 
-val oborMainTable = rsWeightedTable {
+val oborMainTable = rsWeightedTable<Player, Item> {
     name("Obor main drop table")
     6 weight Item("rune_med_helm")
     5 weight Item("rune_full_helm")
@@ -53,10 +45,10 @@ val oborMainTable = rsWeightedTable {
 }
 
 
-val oborTertiaries = rsTertiaryTable {
+val oborTertiaries = rsTertiaryTable<Player, Item> {
     name("Obor tertiaries")
     1 outOf 16 chance Item("giant_key")
-    1 outOf 400 chance longCurvedTable
+    1 outOf 400 chance LongAndCurvedBoneTable
     1 outOf 5_000 chance championScroll(ChampionType.Giant)
 }
 
@@ -67,8 +59,9 @@ val fullOborTable = RSDropTable(
     tertiaries = oborTertiaries,
 )
 
-fun <T: RSTable> T.countRoll(rolls: Int, target: Player, otherArgs: ArgMap = ArgMap.Empty): Map<String, Int> = buildMap {
-    fun Item.inc() {
+fun <T, R, E: RSTable<T, R>> E.countRoll(rolls: Int, target: T, idSelector: (R) -> String, otherArgs: ArgMap = ArgMap.Empty): Map<String, Int> = buildMap {
+    fun R.inc() {
+        val itemId = idSelector(this)
         putIfAbsent(itemId, 0)
         put(itemId, get(itemId)!! + 1)
     }
@@ -78,7 +71,7 @@ fun <T: RSTable> T.countRoll(rolls: Int, target: Player, otherArgs: ArgMap = Arg
         when (result) {
             is RollResult.Nothing -> return@repeat
             is RollResult.Single -> result.result.inc()
-            is RollResult.ListOf -> (result.flatten() as RollResult.ListOf<Item>).results.forEach { it.inc()}
+            is RollResult.ListOf -> (result.flatten() as RollResult.ListOf<R>).results.forEach { it.inc() }
         }
     }
 }
@@ -132,7 +125,7 @@ fun oborRollComparison(player: Player, rolls: Int = 817_368) {
     )
     // OSRS wiki-sourced seed drop amount to get the above expected chances
     val rollAmount = rolls
-    val fullResults = fullOborTable.countRoll(rollAmount, player)
+    val fullResults = fullOborTable.countRoll(rollAmount, player, { it.itemId } )
     println("full: $fullResults")
     println(mainExpected.sumOf { it.second })
     println(fullResults.entries.filter { fr -> mainExpected.any { it.first == fr.key }}.sumOf { it.value.toDouble() / rollAmount })
