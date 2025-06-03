@@ -1,10 +1,13 @@
 package dtx.impl
 
 import dtx.core.ArgMap
+import dtx.core.ResultSelector
 import dtx.core.Rollable
 import dtx.core.SingleRollableBuilder
 import dtx.core.RollResult
 import dtx.core.Rollable.Companion.defaultOnSelect
+import dtx.core.ShouldRoll
+import dtx.core.defaultShouldRoll
 import dtx.core.singleRollable
 import dtx.table.AbstractTableBuilder
 import dtx.table.Table
@@ -41,29 +44,31 @@ internal class WrappingInt(
 
 public class SequentialTable<T, R>(
     public val tableName: String,
-    entries: List<Rollable<T, R>>,
-    public val onSelectFunc: (T, RollResult<R>) -> Unit = ::defaultOnSelect,
-    public val onTableReset: SequentialTable<T, R>.() -> Unit = { }
+    public override val tableEntries: List<Rollable<T, R>>,
+    private val shouldRollFunc: ShouldRoll<T> = ::defaultShouldRoll,
+    private val onSelectFunc: (T, RollResult<R>) -> Unit = ::defaultOnSelect,
+    private val onTableReset: SequentialTable<T, R>.() -> Unit = { }
 ): Table<T, R> {
-
 
     private var isActive: Boolean = true
 
-
-    private val pointer = WrappingInt(0, 0, entries.size) {
+    private val pointer = WrappingInt(0, 0, tableEntries.size) {
         this.onTableReset()
     }
 
-
-    public override val tableEntries: List<Rollable<T, R>> = entries
-
+    public override fun shouldRoll(target: T): Boolean {
+        return shouldRollFunc(target)
+    }
 
     public override fun onSelect(target: T, result: RollResult<R>) {
         this.onSelectFunc(target, result)
     }
 
-
     public override fun roll(target: T, otherArgs: ArgMap): RollResult<R> {
+
+        if (!shouldRoll(target)) {
+            return RollResult.Nothing()
+        }
 
         if (this.isActive) {
 
@@ -87,10 +92,11 @@ public class SequentialTableBuilder<T, R>: AbstractTableBuilder<T, R, Sequential
     public var onResetFunc: SequentialTable<T, R>.() -> Unit = { }
 
     public fun add(vararg rollables: Rollable<T, R>): SequentialTableBuilder<T, R>  {
+
         rollables.forEach { addEntry(it) }
+
         return this
     }
-
 
     public fun add(vararg values: R): SequentialTableBuilder<T, R> {
 
@@ -101,6 +107,9 @@ public class SequentialTableBuilder<T, R>: AbstractTableBuilder<T, R, Sequential
         return this
     }
 
+    public fun addBy(resultSelector: ResultSelector<T, R>): SequentialTableBuilder<T, R> {
+        return add(Rollable.SingleByFun(resultSelector))
+    }
 
     public fun add(block: SingleRollableBuilder<T, R>.() -> Unit): SequentialTableBuilder<T, R> {
         return add(singleRollable(block))
@@ -108,7 +117,7 @@ public class SequentialTableBuilder<T, R>: AbstractTableBuilder<T, R, Sequential
 
 
     public override fun build(): SequentialTable<T, R> {
-        return SequentialTable(tableName, entries.map { it }, onSelectFunc, onResetFunc)
+        return SequentialTable(tableName, entries, shouldRollFunc, onSelectFunc, onResetFunc)
     }
 }
 

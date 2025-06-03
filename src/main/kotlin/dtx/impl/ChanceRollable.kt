@@ -3,6 +3,8 @@ package dtx.impl
 import dtx.core.ArgMap
 import dtx.core.RollResult
 import dtx.core.Rollable
+import dtx.core.ShouldRoll
+import dtx.core.defaultShouldRoll
 
 public interface ChanceRollable<T, R>: Rollable<T, R> {
 
@@ -23,6 +25,10 @@ public interface ChanceRollable<T, R>: Rollable<T, R> {
 
     private data object Empty: ChanceRollable<Any?, Any?> {
 
+        override fun shouldRoll(target: Any?): Boolean {
+            return false
+        }
+
         override val chance: Double = 0.0
 
         override val rollable: Rollable<Any?, Any?> = Rollable.Empty()
@@ -36,7 +42,21 @@ public interface ChanceRollable<T, R>: Rollable<T, R> {
     }
 }
 
-public data class ChanceRollableImpl<T, R>(
+public class ChanceRollableImpl<T, R>(
     override val chance: Double,
-    override val rollable: Rollable<T, R>
-): ChanceRollable<T, R>
+    override val rollable: Rollable<T, R>,
+    private val shouldRollFunc: ShouldRoll<T> = ::defaultShouldRoll
+): ChanceRollable<T, R> {
+    override fun shouldRoll(target: T): Boolean {
+        return shouldRollFunc(target)
+    }
+
+    override fun roll(target: T, otherArgs: ArgMap): RollResult<R> {
+
+        if (!shouldRoll(target)) {
+            return RollResult.Nothing()
+        }
+
+        return rollable.roll(target, otherArgs)
+    }
+}

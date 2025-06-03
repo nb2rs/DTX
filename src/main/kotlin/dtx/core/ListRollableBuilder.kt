@@ -1,21 +1,22 @@
 package dtx.core
 
+import dtx.core.OnSelect
+import dtx.core.ShouldRoll
+
 public open class ListRollableBuilder<T, R> {
 
     public var rollables: MutableList<Rollable<T, R>> = mutableListOf()
+    public var shouldRollFunc: ShouldRoll<T> = ::defaultShouldRoll
+    public var onSelectFun: OnSelect<T, R> = Rollable.Companion::defaultOnSelect
 
-    public var shouldRollFunc: (T) -> Boolean = { true }
-
-    public var onSelectFun: (T, RollResult<R>) -> Unit = Rollable.Companion::defaultOnSelect
-
-    public fun shouldRoll(block: (T) -> Boolean): ListRollableBuilder<T, R> {
+    public fun shouldRoll(block: ShouldRoll<T>): ListRollableBuilder<T, R> {
 
         shouldRollFunc = block
 
         return this
     }
 
-    public fun onSelect(block: (T, RollResult<R>) -> Unit): ListRollableBuilder<T, R> {
+    public fun onSelect(block: OnSelect<T, R>): ListRollableBuilder<T, R> {
 
         onSelectFun = block
 

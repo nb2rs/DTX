@@ -1,5 +1,6 @@
 package dtx.impl
 
+import dtx.core.ResultSelector
 import dtx.core.Rollable
 import dtx.table.AbstractTableBuilder
 
@@ -18,7 +19,7 @@ public open class MultiChanceTableBuilder<T, R>: AbstractTableBuilder<T, R, Mult
         return chance(Rollable.Single(entry))
     }
 
-    public infix fun Percent.chance(entryBlock: () -> R): MultiChanceTableBuilder<T, R> {
+    public infix fun Percent.chance(entryBlock: ResultSelector<T, R>): MultiChanceTableBuilder<T, R> {
         return chance(Rollable.SingleByFun(entryBlock))
     }
 
@@ -30,7 +31,7 @@ public open class MultiChanceTableBuilder<T, R>: AbstractTableBuilder<T, R, Mult
         return chance(Rollable.Single(entry))
     }
 
-    public infix fun Int.chance(entryBlock: () -> R): MultiChanceTableBuilder<T, R> {
+    public infix fun Int.chance(entryBlock: ResultSelector<T, R>): MultiChanceTableBuilder<T, R> {
         return chance(Rollable.SingleByFun(entryBlock))
     }
 
@@ -38,6 +39,7 @@ public open class MultiChanceTableBuilder<T, R>: AbstractTableBuilder<T, R, Mult
         return MultiChanceTableImpl(
             tableName,
             entries,
+            shouldRollFunc,
             getRollModFunc,
             getDropRateFunc,
             onSelectFunc

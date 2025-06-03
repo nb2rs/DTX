@@ -1,9 +1,14 @@
 package dtx.impl
 
 import dtx.core.ArgMap
+import dtx.core.BaseDroprate
+import dtx.core.OnSelect
+import dtx.core.RollModifier
 import dtx.core.RollResult
 import dtx.core.Rollable.Companion.defaultGetBaseDropRate
 import dtx.core.Rollable.Companion.defaultOnSelect
+import dtx.core.ShouldRoll
+import dtx.core.defaultShouldRoll
 import dtx.table.Table
 import dtx.table.Table.Companion.defaultRollModifier
 import dtx.util.NoTransform
@@ -43,31 +48,38 @@ public interface WeightedTable<T, R>: Table<T, R> {
 public open class WeightedTableImpl<T, R>(
     public val tableIdentifier: String,
     entries: List<WeightedRollable<T, R>>,
-    protected val rollModifierFunc: (Double) -> Double = ::defaultRollModifier,
-    protected val getTargetDropRate: (T) -> Double = ::defaultGetBaseDropRate,
-    protected open val onSelectFunc: (T, RollResult<R>) -> Unit = ::defaultOnSelect
+    protected val shouldRollFunc: ShouldRoll<T> = ::defaultShouldRoll,
+    protected val rollModifierFunc: RollModifier<T> = ::defaultRollModifier,
+    protected val getTargetDropRate: BaseDroprate<T> = ::defaultGetBaseDropRate,
+    protected val onSelectFunc: OnSelect<T, R> = ::defaultOnSelect
 ): WeightedTable<T, R> {
-
 
     override var maxRoll: Double = entries.sumOf { it.weight }
         protected set
 
     public override val tableEntries: List<WeightedRollable<T, R>> = entries.map(NoTransform())
 
-    public override fun getBaseDropRate(target: T): Double {
-        return getTargetDropRate(target)
+    public override fun shouldRoll(target: T): Boolean {
+        return shouldRollFunc(target)
     }
-
-    override fun rollModifier(percentage: Double): Double {
-        return rollModifierFunc(percentage)
-    }
-
 
     public override fun onSelect(target: T, result: RollResult<R>): Unit {
         return onSelectFunc(target, result)
     }
 
+    public override fun getBaseDropRate(target: T): Double {
+        return getTargetDropRate(target)
+    }
+
+    override fun rollModifier(target: T, percentage: Double): Double {
+        return rollModifierFunc(target, percentage)
+    }
+
     public override fun roll(target: T, otherArgs: ArgMap): RollResult<R> {
+
+        if (!shouldRoll(target)) {
+            return RollResult.Nothing()
+        }
 
         when (tableEntries.size) {
 
@@ -88,7 +100,7 @@ public open class WeightedTableImpl<T, R>(
             }
         }
 
-        val rollMod = rollModifier(getBaseDropRate(target))
+        val rollMod = rollModifier(target, getBaseDropRate(target))
         val rolledWeight = Random.nextDouble(0.0, maxRoll)
         val pickedEntry = getWeightedEntry(rollMod, rolledWeight, tableEntries)
         val result = pickedEntry.roll(target, otherArgs)

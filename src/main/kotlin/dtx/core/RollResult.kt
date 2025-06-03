@@ -3,13 +3,10 @@ package dtx.core
 public sealed interface RollResult<R> {
 
     public data object Nothing: RollResult<Nothing>
-
     public data class Single<R>(val result: R): RollResult<R>
-
     public data class ListOf<R>(val results: List<R>): RollResult<R>
 
     public companion object {
-
         public fun <R> Nothing(): RollResult<R> = Nothing as RollResult<R>
     }
 }
@@ -33,7 +30,9 @@ public fun <R> List<RollResult<R>>.flattenToList(): RollResult.ListOf<R> {
     }
 
     val filtered = filterNot { it is RollResult.Nothing }
-    val singles = filtered.filterIsInstance<RollResult.Single<R>>().map { it.result }
+    val singles = filtered
+        .filterIsInstance<RollResult.Single<R>>()
+        .map { it.result }
     val singlesResult = RollResult.ListOf(singles)
 
     if (singles.size == filtered.size) {

@@ -2,7 +2,7 @@ package dtx.core
 
 public interface Rollable<T, R> {
 
-    public fun shouldRoll(target: T): Boolean = true
+    public fun shouldRoll(target: T): Boolean
 
     public fun onSelect(target: T, result: RollResult<R>): Unit {
         return defaultOnSelect(target, result)
@@ -16,11 +16,19 @@ public interface Rollable<T, R> {
 
     public companion object {
 
-        public fun <T, R> defaultOnSelect(target: T, result: RollResult<R>): Unit = Unit
+        public fun <T, R> defaultOnSelect(target: T, result: RollResult<R>): Unit {
+            return Unit
+        }
 
-        public fun <T> defaultGetBaseDropRate(target: T): Double = 0.0
+        public fun <T> defaultGetBaseDropRate(target: T): Double {
+            return 0.0
+        }
 
         public data object Empty: Rollable<Any?, Any?> {
+
+            override fun shouldRoll(target: Any?): Boolean {
+                return false
+            }
 
             override fun roll(target: Any?, otherArgs: ArgMap): RollResult<Any?> {
                 return RollResult.Companion.Nothing()
@@ -37,32 +45,32 @@ public interface Rollable<T, R> {
 
         public fun <T, R> AnyOf(
             rollables: List<Rollable<T, R>>,
-            predicate: (T) -> Boolean = { true },
-            onSelectFun: (T, RollResult<R>) -> Unit = ::defaultOnSelect
+            predicate: ShouldRoll<T> = ::defaultShouldRoll,
+            onSelectFun: OnSelect<T, R> = ::defaultOnSelect
         ): Rollable<T, R> {
             return dtx.core.AnyOf(rollables, predicate, onSelectFun)
         }
 
         public fun <T, R> AllOf(
             rollables: List<Rollable<T, R>>,
-            predicate: (T) -> Boolean = { true },
-            onSelectFun: (T, RollResult<R>) -> Unit = ::defaultOnSelect
+            predicate: ShouldRoll<T> = ::defaultShouldRoll,
+            onSelectFun: OnSelect<T, R> = ::defaultOnSelect
         ): Rollable<T, R> {
             return dtx.core.AllOf(rollables, predicate, onSelectFun)
         }
 
         public fun <T, R> Single(
             result: R,
-            predicate: (T) -> Boolean = { true },
-            onSelectFun: (T, RollResult<R>) -> Unit = ::defaultOnSelect
+            predicate: ShouldRoll<T> = ::defaultShouldRoll,
+            onSelectFun: OnSelect<T, R> = ::defaultOnSelect
         ): Rollable<T, R> {
             return dtx.core.Single(result, predicate, onSelectFun)
         }
 
         public fun <T, R> SingleByFun(
-            resultSelector: () -> R,
-            predicate: (T) -> Boolean = { true },
-            onSelectFun: (T, RollResult<R>) -> Unit = ::defaultOnSelect
+            resultSelector: ResultSelector<T, R>,
+            predicate: ShouldRoll<T> = ::defaultShouldRoll,
+            onSelectFun: OnSelect<T, R> = ::defaultOnSelect
         ): Rollable<T, R> {
             return dtx.core.SingleByFun(resultSelector, predicate, onSelectFun)
         }

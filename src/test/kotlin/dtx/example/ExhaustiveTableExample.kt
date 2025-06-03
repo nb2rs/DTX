@@ -1,6 +1,5 @@
 package dtx.example
 
-import dtx.core.Rollable.Companion.Empty.roll
 import dtx.impl.uniformExhaustiveTable
 import dtx.impl.weightedExhaustiveTable
 
@@ -79,5 +78,11 @@ val weightedExhaustiveTableExample = weightedExhaustiveTable<Player, Item> {
 
     onExhaust {
         println("Raffle is over, deck is empty!!")
+    }
+}
+
+fun main() {
+    repeat(21) {
+        uniformExhaustiveTableExample.roll(examplePlayer)
     }
 }
