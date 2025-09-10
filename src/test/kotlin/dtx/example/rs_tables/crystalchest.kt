@@ -1,15 +1,12 @@
 package dtx.example.rs_tables
 
-import dtx.core.Rollable
 import dtx.example.Gender
 import dtx.example.Item
 import dtx.example.Player
 import kotlin.random.Random
 
-// a whole table for 1 dragonstone? crazy
-val dragonstoneTable = rsGuaranteedTable<Player, Item> {
-    add(Item("uncut_dragonstone"))
-}
+val dragonstoneTable = guaranteedSingle<Player, Item>(Item("uncut_dragonstone"))
+
 
 val crystalChestMain = rsWeightedTable<Player, Item> {
 
@@ -44,12 +41,7 @@ val crystalChestMain = rsWeightedTable<Player, Item> {
     10 weight rsGuaranteedTable {
         add(Item("coins", 750))
         add {
-            val pickedHalf = if (Random.nextBoolean()) {
-                "loop"
-            } else {
-                "tooth"
-            }
-
+            val pickedHalf = if (Random.nextBoolean()) { "loop" } else { "tooth" }
             Item("${pickedHalf}_half_of_key")
         }
     }
@@ -65,15 +57,14 @@ val crystalChestMain = rsWeightedTable<Player, Item> {
 
     2 weight Item("adamant_sq_shield", 1)
 
-    1 weightBy { player ->
+    1 weight {
+        shouldInclude { player -> player.gender == Gender.PlatelegEnjoyer }
+        result(Item("rune_platelegs"))
+    }
 
-        val type = if (player.gender == Gender.PlatelegEnjoyer) {
-            "legs"
-        } else {
-            "skirt"
-        }
-
-        Item("rune_plate$type")
+    1 weight {
+        shouldInclude { player -> player.gender == Gender.PlateskirtEnthusiast }
+        result(Item("rune_plateskirt"))
     }
 }
 

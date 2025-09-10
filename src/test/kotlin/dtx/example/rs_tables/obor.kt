@@ -1,4 +1,5 @@
 package dtx.example.rs_tables
+
 import dtx.core.ArgMap
 import dtx.core.RollResult
 import dtx.core.flatten
@@ -11,7 +12,7 @@ import dtx.example.randTo
 val oborGuaranteed = rsGuaranteedTable<Player, Item> {
     identifier("Obor guaranteed drops")
     add(Item("big_bones"))
-    add(clueScrollDrop(ClueDifficulty.Beginner))
+    add(clueDrop(ClueTier.Beginner))
     add(Item("ensouled_giant_head"))
 }
 
@@ -47,13 +48,13 @@ val oborMainTable = rsWeightedTable<Player, Item> {
 
 val oborTertiaries = rsTertiaryTable<Player, Item> {
     name("Obor tertiaries")
-    1 outOf 16 chance Item("giant_key")
+    (1 outOf 16) chance Item("giant_key")
     1 outOf 400 chance LongAndCurvedBoneTable
     1 outOf 5_000 chance championScroll(ChampionType.Giant)
 }
 
 val fullOborTable = RSDropTable(
-    identifier = "Obor Drops",
+    tableIdentifier = "Obor Drops",
     guaranteed = oborGuaranteed,
     mainTable = oborMainTable,
     tertiaries = oborTertiaries,
@@ -67,14 +68,15 @@ fun <T, R, E: RSTable<T, R>> E.countRoll(rolls: Int, target: T, idSelector: (R) 
     }
 
     repeat(rolls) {
-        val result = roll(target, otherArgs).flatten()
-        when (result) {
+        when (val result = roll(target, otherArgs).flatten()) {
             is RollResult.Nothing -> return@repeat
             is RollResult.Single -> result.result.inc()
             is RollResult.ListOf -> (result.flatten() as RollResult.ListOf<R>).results.forEach { it.inc() }
         }
     }
 }
+
+fun Double.truncStr(toDigits: Int = 2) = "%.${toDigits}f".format(this)
 
 fun oborRollComparison(player: Player, rolls: Int = 817_368) {
     // OSRS wiki-sourced expected drop rates, as a percentage per kill
@@ -130,19 +132,21 @@ fun oborRollComparison(player: Player, rolls: Int = 817_368) {
     println(mainExpected.sumOf { it.second })
     println(fullResults.entries.filter { fr -> mainExpected.any { it.first == fr.key }}.sumOf { it.value.toDouble() / rollAmount })
     println(fullResults.entries.sumOf { it.value })
-    expected.forEach { (itemId, dropRate) ->
-        print("$itemId - expected[${dropRate}] got[")
+    expected.forEach { (itemId, expectedDropRate) ->
+        print("$itemId - expected[${expectedDropRate}] got[")
         val gotDropRate = if (fullResults[itemId] != null) {
             fullResults[itemId]!!.toDouble() / rollAmount * 100
         } else {
             0.0
         }
-        print(gotDropRate)
-        println("]")
+        print(gotDropRate.truncStr(4))
+        val delta = gotDropRate - expectedDropRate
+        println("] (delta: ${delta.truncStr(4)})")
     }
 }
 
 fun main() {
+    oborRollComparison(examplePlayer)
     oborRollComparison(examplePlayer)
     examplePlayer.currentWorld = 2
     examplePlayer.questPoints = 33

@@ -1,17 +1,11 @@
 package dtx.impl
 
 import dtx.core.ArgMap
-import dtx.core.BaseDroprate
-import dtx.core.OnSelect
-import dtx.core.RollModifier
 import dtx.core.Rollable
 import dtx.core.RollResult
-import dtx.core.Rollable.Companion.defaultOnSelect
-import dtx.core.Rollable.Companion.defaultGetBaseDropRate
-import dtx.core.ShouldRoll
-import dtx.core.defaultShouldRoll
 import dtx.table.AbstractTableBuilder
-import dtx.table.Table.Companion.defaultRollModifier
+import dtx.table.DefaultTableHooksBuilder
+import dtx.table.TableHooks
 import dtx.util.NoTransform
 
 
@@ -24,8 +18,8 @@ public class MetaChanceRollable<T, R>(
     public override val metaEntryFilters: MutableSet<MetaEntryFilter<T, R>> = mutableSetOf()
 ): MetaRollable<T, R>, ChanceRollable<T, R> {
 
-    override fun shouldRoll(target: T): Boolean {
-        return rollable.shouldRoll(target)
+    override fun includeInRoll(onTarget: T): Boolean {
+        return rollable.includeInRoll(onTarget)
     }
 
     public override var chance: Double = initialChance.coerceIn(minChance, maxChance)
@@ -83,14 +77,8 @@ public class MetaChanceRollableBuilder<T, R>: AbstractMetaRollableBuilder<T, R, 
 public class MetaMultiChanceTableImpl<T, R>(
     tableName: String,
     entries: List<MetaChanceRollable<T, R>>,
-    shouldRollFunc: ShouldRoll<T> = ::defaultShouldRoll,
-    rollModifierFunc: RollModifier<T> = ::defaultRollModifier,
-    getBaseDropRateFunc: BaseDroprate<T> = ::defaultGetBaseDropRate,
-    onSelectFunc: OnSelect<T, R> = ::defaultOnSelect
-): MetaTable<T, R>, MultiChanceTableImpl<T, R>(
-    tableName, entries, shouldRollFunc,
-    rollModifierFunc, getBaseDropRateFunc, onSelectFunc
-) {
+    hooks: TableHooks<T, R>,
+): MetaTable<T, R>, MultiChanceTableImpl<T, R>(tableName, entries, hooks) {
 
     public override val tableEntries: MutableList<MetaChanceRollable<T, R>> = entries
         .map(NoTransform())
@@ -101,28 +89,41 @@ public class MetaMultiChanceTableImpl<T, R>(
     }
 }
 
-public class MetaMultiChanceTableBuilder<T, R>: AbstractTableBuilder<T, R, MetaMultiChanceTableImpl<T, R>, MetaChanceRollable<T, R>, MetaMultiChanceTableBuilder<T, R>>() {
+public class MetaMultiChanceTableBuilder<T, R>: AbstractTableBuilder<
+        T,
+        R,
+        MetaChanceRollable<T, R>,
+        MetaMultiChanceTableImpl<T, R>,
+        TableHooks<T, R>,
+        DefaultTableHooksBuilder<T, R>,
+        MetaMultiChanceTableBuilder<T, R>
+>(createHookBuilder = DefaultTableHooksBuilder.new()) {
+
+    init {
+        construct {
+            MetaMultiChanceTableImpl<T, R>(
+                tableIdentifier,
+                entries.toMutableList(),
+                hooks.build()
+            )
+        }
+    }
 
     override val entries: MutableList<MetaChanceRollable<T, R>> = mutableListOf()
 
     public infix fun Percent.chance(rollable: MetaChanceRollable<T, R>): MetaMultiChanceTableBuilder<T, R> {
 
         rollable.chance = value * 100.0
+
         return addEntry(rollable)
     }
 
-    public inline infix fun Percent.chance(
-        builder: MetaChanceRollableBuilder<T, R>.() -> Unit
-    ): MetaMultiChanceTableBuilder<T, R> {
+    public inline infix fun Percent.chance(builder: MetaChanceRollableBuilder<T, R>.() -> Unit): MetaMultiChanceTableBuilder<T, R> {
 
         val builder = MetaChanceRollableBuilder<T, R>()
         builder.builder()
 
         return chance(builder.build())
-    }
-
-    public override fun build(): MetaMultiChanceTableImpl<T, R> {
-        return MetaMultiChanceTableImpl(tableName, entries, shouldRollFunc, getRollModFunc, getDropRateFunc, onSelectFunc)
     }
 }
 

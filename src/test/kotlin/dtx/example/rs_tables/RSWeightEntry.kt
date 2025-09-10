@@ -10,7 +10,7 @@ class RSWeightEntry<T, R>(
     rollable: Rollable<T, R>
 ): WeightedRollable<T, R> by WeightedRollableImpl(
     weight = (rangeEnd - rangeStart).toDouble(),
-    rollable
+    rollable = rollable
 ) {
     infix fun checkWeight(value: Int): Boolean = value in rangeStart ..< rangeEnd
 }

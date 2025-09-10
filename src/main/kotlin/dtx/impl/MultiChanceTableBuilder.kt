@@ -2,9 +2,31 @@ package dtx.impl
 
 import dtx.core.ResultSelector
 import dtx.core.Rollable
+import dtx.core.Single
+import dtx.core.SingleByFun
 import dtx.table.AbstractTableBuilder
+import dtx.table.DefaultTableHooksBuilder
+import dtx.table.TableHooks
 
-public open class MultiChanceTableBuilder<T, R>: AbstractTableBuilder<T, R, MultiChanceTable<T, R>, ChanceRollable<T, R>, MultiChanceTableBuilder<T, R>>() {
+public open class MultiChanceTableBuilder<T, R>: AbstractTableBuilder<
+        T,
+        R,
+        ChanceRollable<T, R>,
+        MultiChanceTable<T, R>,
+        TableHooks<T, R>,
+        DefaultTableHooksBuilder<T, R>,
+        MultiChanceTableBuilder<T, R>
+>(createHookBuilder = DefaultTableHooksBuilder.new()) {
+
+    init {
+        construct {
+            MultiChanceTableImpl(
+                tableIdentifier,
+                entries,
+                hooks.build(),
+            )
+        }
+    }
 
     override val entries: MutableList<ChanceRollable<T, R>> = mutableListOf()
 
@@ -16,11 +38,11 @@ public open class MultiChanceTableBuilder<T, R>: AbstractTableBuilder<T, R, Mult
     }
 
     public infix fun Percent.chance(entry: R): MultiChanceTableBuilder<T, R> {
-        return chance(Rollable.Single(entry))
+        return chance(Single(entry))
     }
 
     public infix fun Percent.chance(entryBlock: ResultSelector<T, R>): MultiChanceTableBuilder<T, R> {
-        return chance(Rollable.SingleByFun(entryBlock))
+        return chance(SingleByFun(entryBlock))
     }
 
     public infix fun Int.chance(rollable: Rollable<T, R>): MultiChanceTableBuilder<T, R> {
@@ -28,22 +50,11 @@ public open class MultiChanceTableBuilder<T, R>: AbstractTableBuilder<T, R, Mult
     }
 
     public infix fun Int.chance(entry: R): MultiChanceTableBuilder<T, R> {
-        return chance(Rollable.Single(entry))
+        return chance(Single(entry))
     }
 
     public infix fun Int.chance(entryBlock: ResultSelector<T, R>): MultiChanceTableBuilder<T, R> {
-        return chance(Rollable.SingleByFun(entryBlock))
-    }
-
-    override fun build(): MultiChanceTable<T, R> {
-        return MultiChanceTableImpl(
-            tableName,
-            entries,
-            shouldRollFunc,
-            getRollModFunc,
-            getDropRateFunc,
-            onSelectFunc
-        )
+        return chance(SingleByFun(entryBlock))
     }
 }
 

@@ -12,7 +12,7 @@ val uniformExhaustiveTableExample = uniformExhaustiveTable<Player, Item> {
     name("Goblin dungeon encounters")
 
     1 rolls {
-        onSelect { player, encounter ->
+        onRollCompleted { player, encounter ->
             println("You turn the corner and the head honcho is there, ready to beat you up.")
         }
         onExhaust {
@@ -22,7 +22,7 @@ val uniformExhaustiveTableExample = uniformExhaustiveTable<Player, Item> {
     }
 
     3 rolls {
-        onSelect { player, encounter ->
+        onRollCompleted { player, encounter ->
             println("A... skeleton riding a goblin? What? That can't be common around here...")
         }
         onExhaust {
@@ -32,7 +32,7 @@ val uniformExhaustiveTableExample = uniformExhaustiveTable<Player, Item> {
     }
 
     6 rolls {
-        onSelect { player, encounter ->
+        onRollCompleted { player, encounter ->
             println("You encounter a horde of goblins! Now this is a battle!")
         }
         onExhaust {
@@ -42,7 +42,7 @@ val uniformExhaustiveTableExample = uniformExhaustiveTable<Player, Item> {
     }
 
     10 rolls {
-        onSelect { player, encounter ->
+        onRollCompleted { player, encounter ->
             println("You sneak up on a poor lone goblin!")
         }
         onExhaust {
@@ -84,5 +84,10 @@ val weightedExhaustiveTableExample = weightedExhaustiveTable<Player, Item> {
 fun main() {
     repeat(21) {
         uniformExhaustiveTableExample.roll(examplePlayer)
+    }
+
+    repeat(26) {
+        val res = weightedExhaustiveTableExample.roll(examplePlayer)
+        println("Card Result: $res")
     }
 }

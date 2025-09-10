@@ -1,17 +1,25 @@
 package dtx.impl
 
-import dtx.core.ResultSelector
+import dtx.core.ArgMap
+import dtx.core.RollResult
 import dtx.core.Rollable
+import dtx.core.Single
+import dtx.core.SingleByFun
 import dtx.core.SingleRollableBuilder
 
-public abstract class AbstractMetaRollableBuilder<Target, Rolled, EntryType: MetaRollable<Target, Rolled>, BuilderType: AbstractMetaRollableBuilder<Target, Rolled, EntryType, BuilderType>> {
+public abstract class AbstractMetaRollableBuilder<
+        Target,
+        RollType,
+        EntryType: MetaRollable<Target, RollType>,
+        BuilderType: AbstractMetaRollableBuilder<Target, RollType, EntryType, BuilderType>
+> {
 
     public var identifier: String = ""
-    public var rollable: Rollable<Target, Rolled> = Rollable.Empty()
+    public var rollable: Rollable<Target, RollType> = Rollable.Empty()
     public var initialValue: Double = 1.0
     public var minValue: Double = Double.MIN_VALUE
     public var maxValue: Double = Double.MAX_VALUE
-    public val filters: MutableSet<MetaEntryFilter<Target, Rolled>> = mutableSetOf()
+    public val filters: MutableSet<MetaEntryFilter<Target, RollType>> = mutableSetOf()
 
     public fun value(newValue: Double): BuilderType {
 
@@ -45,24 +53,24 @@ public abstract class AbstractMetaRollableBuilder<Target, Rolled, EntryType: Met
         return identifier(identifier)
     }
 
-    public fun rollable(newRollable: dtx.core.Rollable<Target, Rolled>): BuilderType {
+    public fun rollable(newRollable: Rollable<Target, RollType>): BuilderType {
 
         rollable = newRollable
 
         return this as BuilderType
     }
 
-    public fun rollable(item: Rolled): BuilderType {
-        return rollable(Rollable.Single(item))
+    public fun rollable(item: RollType): BuilderType {
+        return rollable(Single(item))
     }
 
-    public fun rollableBy(block: ResultSelector<Target, Rolled>): BuilderType {
-        return rollable(Rollable.SingleByFun(block))
+    public fun rollableBy(block: SingleByFun<Target, RollType>.(Target, ArgMap) -> RollResult<RollType>): BuilderType {
+        return rollable(SingleByFun(block))
     }
 
-    public fun rollable(block: SingleRollableBuilder<Target, Rolled>.() -> Unit): BuilderType {
+    public fun rollable(block: SingleRollableBuilder<Target, RollType>.() -> Unit): BuilderType {
 
-        val built = SingleRollableBuilder<Target, Rolled>()
+        val built = SingleRollableBuilder<Target, RollType>()
             .apply(block)
             .build()
         rollable(built)
@@ -70,7 +78,7 @@ public abstract class AbstractMetaRollableBuilder<Target, Rolled, EntryType: Met
         return this as BuilderType
     }
 
-    public fun addFilter(filter: MetaEntryFilter<Target, Rolled>): BuilderType {
+    public fun addFilter(filter: MetaEntryFilter<Target, RollType>): BuilderType {
 
         filters.add(filter)
 
@@ -78,8 +86,8 @@ public abstract class AbstractMetaRollableBuilder<Target, Rolled, EntryType: Met
     }
 
 
-    public fun addFilter(block: MetaEntryFilterBuilder<Target, Rolled>.() -> Unit): BuilderType {
-        return addFilter(MetaEntryFilterBuilder<Target, Rolled>().apply(block).build())
+    public fun addFilter(block: MetaEntryFilterBuilder<Target, RollType>.() -> Unit): BuilderType {
+        return addFilter(MetaEntryFilterBuilder<Target, RollType>().apply(block).build())
     }
 
     public abstract fun build(): EntryType

@@ -1,84 +1,42 @@
 package dtx.table
 
 import dtx.core.ArgMap
-import dtx.core.OnSelect
 import dtx.core.RollResult
 import dtx.core.Rollable
-import dtx.core.SingleRollableBuilder
-import dtx.core.Rollable.Companion.defaultOnSelect
-import dtx.core.ShouldRoll
-import dtx.core.defaultShouldRoll
-import dtx.core.singleRollable
+import dtx.core.Single
 
-public class UniformTable<T, R>(
-    public val tableName: String = "",
-    public override val tableEntries: List<Rollable<T, R>>,
-    private val shouldRollFunc: ShouldRoll<T> = ::defaultShouldRoll,
-    private val onSelectFunc: OnSelect<T, R> = ::defaultOnSelect
-): Table<T, R> {
+public open class UniformTable<T, R>(
+    public override val tableIdentifier: String,
+    public override val tableEntries: MutableCollection<Rollable<T, R>>,
+    protected open val hooks: TableHooks<T, R>
+): Table<T, R>, TableHooks<T, R> by hooks {
 
-    override fun shouldRoll(target: T): Boolean {
-        return shouldRollFunc(target)
+    override fun selectResult(target: T, otherArgs: ArgMap): RollResult<R> {
+        return selectEntries(target).random().roll(target, otherArgs)
     }
-
-    public override fun roll(target: T, otherArgs: ArgMap): RollResult<R> {
-
-        if (!shouldRoll(target)) {
-            return RollResult.Nothing()
-        }
-
-        val result = tableEntries.random().roll(target, otherArgs)
-        onSelectFunc(target, result)
-
-        return result
-    }
-
-    public override fun toString(): String = "UniformTable[$tableName]"
 }
 
-public open class UniformTableBuilder<T, R>: AbstractTableBuilder<T, R, UniformTable<T, R>, Rollable<T, R>, UniformTableBuilder<T, R>>() {
+public open class UniformTableBuilder<
+        T,
+        R,
+        HookType: TableHooks<T, R>,
+        HookBuilder: AbstractTableHooksBuilder<T, R, HookType, HookBuilder>
+>: DefaultTableBuilder<T, R, Rollable<T, R>, UniformTable<T, R>>() {
+    override val entries: MutableCollection<Rollable<T, R>> = mutableListOf()
 
-    override val entries: MutableList<Rollable<T, R>> = mutableListOf<Rollable<T, R>>()
-
-    public fun add(vararg valuesToAdd: R): UniformTableBuilder<T, R> {
-        
-        valuesToAdd.forEach {
-            entries.add(Rollable.Single(it))
-        }
-        
+    public open fun add(result: R): UniformTableBuilder<T, R, HookType, HookBuilder> {
+        addEntry(Single(result))
         return this
-    }
-
-    public fun add(vararg valuesToAdd: Rollable<T, R>): UniformTableBuilder<T, R> {
-        
-        valuesToAdd.forEach(entries::add)
-        
-        return this
-    }
-
-
-    public fun add(block: SingleRollableBuilder<T, R>.() -> Unit): UniformTableBuilder<T, R> {
-        
-        add(singleRollable(block))
-        
-        return this
-    }
-
-    public override fun build(): UniformTable<T, R> {
-        return UniformTable<T, R>(
-            tableName = tableName,
-            tableEntries = entries,
-            onSelectFunc = onSelectFunc
-        )
     }
 }
 
 public fun <T, R> uniformTable(
     tableName: String = "Unnamed Uniform Table",
-    block: UniformTableBuilder<T, R>.() -> Unit
+    block: UniformTableBuilder<T, R, TableHooks<T, R>, DefaultTableHooksBuilder<T, R>>.() -> Unit
 ): UniformTable<T, R> {
 
-    val builder = UniformTableBuilder<T, R>()
+    val builder = UniformTableBuilder<T, R, TableHooks<T, R>, DefaultTableHooksBuilder<T, R>> ()
+
     builder.apply { name(tableName) }
     builder.apply(block)
 

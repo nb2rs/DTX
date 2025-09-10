@@ -1,79 +1,81 @@
 package dtx.table
 
-import dtx.core.BaseDroprate
-import dtx.core.OnSelect
-import dtx.core.Roll
-import dtx.core.RollModifier
-import dtx.core.RollResult
+import dtx.core.AbstractRollableBuilder
 import dtx.core.Rollable
-import dtx.core.ShouldRoll
-import dtx.core.defaultShouldRoll
 
+/**
+ * Abstract builder for Table objects.
+ * 
+ * @param T the type of the target
+ * @param R the type of the result
+ * @param TableType the type of the Table being built
+ * @param HookType the type of the TableHooks to put in the TableType
+ * @param HookBuilder the type of the TableHooksBuilder being used
+ * @param BuilderType the type of the builder itself
+ * @param createHookBuilder a function that creates a new HookBuilder
+ */
 public abstract class AbstractTableBuilder<
-    Target,
-    Rolled,
-    TableType: Table<Target, Rolled>,
-    EntryType: Rollable<Target, Rolled>,
-    //holy guacamole generics batman
-    BuilderType: AbstractTableBuilder<Target, Rolled, TableType, EntryType, BuilderType>
-> {
+    T,
+    R,
+    RollableType: Rollable<T, R>,
+    TableType: Table<T, R>,
+    HookType: TableHooks<T, R>,
+    HookBuilder: AbstractTableHooksBuilder<T, R, HookType, HookBuilder>,
+    BuilderType: AbstractTableBuilder<T, R, RollableType, TableType, HookType, HookBuilder, BuilderType>
+>(
+    createHookBuilder: () -> HookBuilder
+): AbstractRollableBuilder<
+        T,
+        R,
+        TableType,
+        HookType,
+        HookBuilder,
+        BuilderType
+>(createHookBuilder = createHookBuilder) {
 
-    public var tableName: String = "Unnamed Table"
-    public var getDropRateFunc: BaseDroprate<Target> = Rollable.Companion::defaultGetBaseDropRate
-    public var getRollModFunc: RollModifier<Target> = Table.Companion::defaultRollModifier
-    public var rollFunc: Roll<Target, Rolled> = { _, _ -> RollResult.Nothing() }
-    public var onSelectFunc: OnSelect<Target, Rolled> = Rollable.Companion::defaultOnSelect
-    public var shouldRollFunc: ShouldRoll<Target> = ::defaultShouldRoll
-    protected abstract val entries: MutableCollection<EntryType>
+    public var tableIdentifier: String = "Unnamed Table"
+    protected abstract val entries: MutableCollection<RollableType>
 
     public open fun name(name: String): BuilderType {
 
-        this.tableName = name
+        this.tableIdentifier = name
 
         return this as BuilderType
     }
 
-    public open fun addEntry(entry: EntryType): BuilderType {
+    public open fun addEntry(entry: RollableType): BuilderType {
 
         this.entries.add(entry)
 
         return this as BuilderType
     }
 
-    public open fun getBaseDropRate(newBaseDropRate: BaseDroprate<Target>): BuilderType {
+    public open fun getBaseDropRate(block: (T) -> Double): BuilderType {
 
-        this.getDropRateFunc = newBaseDropRate
-
-        return this as BuilderType
-    }
-
-    public open fun modifyRoll(newRollModifier: RollModifier<Target>): BuilderType {
-
-        this.getRollModFunc = newRollModifier
+        hooks.baseRollFor(block)
 
         return this as BuilderType
     }
 
-    public open fun roll(newRoll: Roll<Target, Rolled>): BuilderType {
+    public open fun modifyRoll(block: (T, Double) -> Double): BuilderType {
 
-        this.rollFunc = newRoll
-
-        return this as BuilderType
-    }
-
-    public open fun onSelect(newOnSelect: OnSelect<Target, Rolled>): BuilderType {
-
-        this.onSelectFunc = newOnSelect
+        hooks.modifyRollFor(block)
 
         return this as BuilderType
     }
-
-    public open fun shouldRoll(newShouldRoll: ShouldRoll<Target>): BuilderType {
-
-        this.shouldRollFunc = newShouldRoll
-
-        return this as BuilderType
-    }
-
-    public abstract fun build(): TableType
 }
+
+public abstract class DefaultTableBuilder<
+    T,
+    R,
+    RT: Rollable<T, R>,
+    TableType: Table<T, R>
+> : AbstractTableBuilder<
+        T,
+        R,
+        RT,
+        TableType,
+        TableHooks<T, R>,
+        DefaultTableHooksBuilder<T, R>,
+        DefaultTableBuilder<T, R, RT, TableType>
+>({ DefaultTableHooksBuilder() })

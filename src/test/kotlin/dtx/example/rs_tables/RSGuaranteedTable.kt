@@ -2,13 +2,13 @@ package dtx.example.rs_tables
 
 import dtx.core.RollResult
 import dtx.core.Rollable
-import dtx.core.ShouldRoll
+import dtx.core.Single
 import dtx.core.SingleRollableBuilder
-import dtx.core.defaultShouldRoll
 import dtx.core.singleRollable
 import dtx.impl.ChanceRollableImpl
 import dtx.impl.MultiChanceTable
 import dtx.impl.MultiChanceTableImpl
+import dtx.table.TableHooks
 
 
 /**
@@ -19,14 +19,14 @@ import dtx.impl.MultiChanceTableImpl
 class RSGuaranteedTable<T, R>(
     tableIdentifier: String,
     tableEntries: Collection<Rollable<T, R>>,
-    shouldRollFunc: ShouldRoll<T> = ::defaultShouldRoll,
+    tableHooks: TableHooks<T, R> = TableHooks.Default(),
 ): RSTable<T, R>, MultiChanceTable<T, R> by MultiChanceTableImpl(
     tableIdentifier,
     tableEntries.map { ChanceRollableImpl(100.0, it) },
-    shouldRollFunc
+    tableHooks
 ) {
     companion object {
-        val EmptyTable = RSGuaranteedTable<Any?, Any?>("", emptyList()) { false }
+        val EmptyTable = RSGuaranteedTable<Any?, Any?>("", emptyList())
         fun <T, R> Empty() = EmptyTable as RSGuaranteedTable<T, R>
     }
 }
@@ -54,7 +54,7 @@ public class RSGuaranteedTableBuilder<T, R> {
     }
 
     fun add(item: R): RSGuaranteedTableBuilder<T, R> {
-        add(Rollable.Single(item))
+        add(Single(item))
         return this
     }
 
@@ -70,4 +70,8 @@ fun <T, R> rsGuaranteedTable(block: RSGuaranteedTableBuilder<T, R>.() -> Unit): 
     builder.apply(block)
 
     return builder.build()
+}
+
+fun <T, R> guaranteedSingle(result: R): RSGuaranteedTable<T, R> = rsGuaranteedTable {
+    add(result)
 }
