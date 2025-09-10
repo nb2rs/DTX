@@ -27,7 +27,6 @@ internal class MetaEntryFilterImpl<T, R>(
 }
 
 
-
 public class MetaEntryFilterBuilder<T, R> {
 
     public var filterFunc: (String) -> Boolean = { false }
@@ -66,19 +65,35 @@ public interface MetaRollable<T, R>: Rollable<T, R> {
 
     public val parentTable: MetaTable<T, R>
 
-    override fun shouldRoll(target: T): Boolean {
-        return rollable.shouldRoll(target)
+    override fun includeInRoll(onTarget: T): Boolean {
+        return rollable.includeInRoll(onTarget)
+    }
+
+    override fun vetoRoll(onTarget: T): Boolean {
+        return rollable.vetoRoll(onTarget)
+    }
+
+    override fun selectResult(target: T, otherArgs: ArgMap): RollResult<R> {
+        return rollable.selectResult(target, otherArgs)
+    }
+
+    override fun onRollVetoed(onTarget: T): RollResult<R> {
+        return rollable.onRollVetoed(onTarget)
+    }
+
+    override fun transformResult(withTarget: T, result: RollResult<R>): RollResult<R> {
+        return rollable.transformResult(withTarget, result)
+    }
+
+    override fun onRollCompleted(target: T, result: RollResult<R>) {
+        return rollable.onRollCompleted(target, result)
     }
 
     public override fun roll(target: T, otherArgs: ArgMap): RollResult<R> {
 
-        if (!shouldRoll(target)) {
-            return RollResult.Nothing()
-        }
-
         val result = rollable.roll(target, otherArgs)
 
-        parentTable.tableEntries.forEach { otherEntry ->
+        parentTable.selectEntries(target).forEach { otherEntry ->
 
             metaEntryFilters.forEach { metaFilter ->
 
@@ -88,8 +103,6 @@ public interface MetaRollable<T, R>: Rollable<T, R> {
             }
         }
 
-        onSelect(target, result)
-
         return result
     }
 }
@@ -97,4 +110,8 @@ public interface MetaRollable<T, R>: Rollable<T, R> {
 public interface MetaTable<T, R>: Table<T, R> {
 
     override val tableEntries: Collection<MetaRollable<T, R>>
+
+    override fun selectEntries(byTarget: T): Collection<MetaRollable<T, R>> {
+        return super.selectEntries(byTarget) as Collection<MetaRollable<T, R>>
+    }
 }
