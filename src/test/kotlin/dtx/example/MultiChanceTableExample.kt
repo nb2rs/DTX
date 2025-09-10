@@ -21,13 +21,19 @@ val multiChanceTableExample = multiChanceTable<Player, Item> {
 
         1 weight {
 
-            onSelect { player, result ->
+            onRollCompleted { player, result ->
 
                 result as RollResult.Single<Item>
                 player.sendMessage("what the cluck, ${result.result.itemAmount} feathers?")
             }
 
-            Item("Feather", 1_000_000 randTo 100_000_000)
+            result(Item("Feather", 1_000_000 randTo 100_000_000))
         }
+    }
+}
+
+fun main() {
+    repeat(1_000_000) {
+        multiChanceTableExample.roll(examplePlayer)
     }
 }

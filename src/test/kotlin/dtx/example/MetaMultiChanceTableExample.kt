@@ -1,6 +1,7 @@
 package dtx.example
 
 import dtx.core.ArgMap
+import dtx.core.RollResult
 import dtx.impl.percent
 import dtx.impl.MetaChanceRollable
 import dtx.impl.MetaEntryFilter
@@ -9,7 +10,7 @@ import dtx.impl.metaMultiChanceTable
 import kotlin.random.Random
 
 enum class BossModAmount(val modifyBy: Double) {
-    Miniscule(0.025), Slight(0.05), Small(0.1), Moderate(1.0), Medum(2.0), Large(5.0);
+    Miniscule(0.025), Slight(0.05), Small(0.1), Moderate(1.0), Medium(2.0), Large(5.0);
 }
 
 data class BossFilter(
@@ -17,6 +18,7 @@ data class BossFilter(
     val direction: MetaModDirection,
     val type: BossModAmount,
 ): MetaEntryFilter<Player, Item> {
+
     override fun filterEntry(modifier: String): Boolean {
         return modifier == idEquals
     }
@@ -26,7 +28,7 @@ data class BossFilter(
         val old = entry.chance
         val modBy = direction.operation(0.0, type.modifyBy)
         val new = direction.operation(0.0, direction.operation(old, modBy))
-        println("Modifying ${entry.identifier} by ${type.modifyBy} ($old -> $new)")
+        println("Modifying ${entry.identifier} by ${type.modifyBy} ($old -> $new (range[${entry.minChance} - ${entry.maxChance}])")
         entry.increaseCurrentChanceBy(modBy)
     }
 }
@@ -57,7 +59,7 @@ val ExampleBossDrops = metaMultiChanceTable<Player, Item> {
 
         id("scrap")
 
-        rollable { Item("Armour scrap", Random.nextInt(1, 3)) }
+        rollable(Item("Armour scrap", 1 randTo 3))
 
         minChance(25.0)
         maxChance(40.0)
@@ -88,10 +90,9 @@ val ExampleBossDrops = metaMultiChanceTable<Player, Item> {
         rollable(Item("Sword"))
 
         minChance(1.00)
-        maxChance(3.00)
+        maxChance(5.00)
 
-        addFilter(BossFilter("sword", MetaModDirection.Decrease, BossModAmount.Small))
-        addFilter(BossFilter("sword", MetaModDirection.Increase, BossModAmount.Moderate))
+        addFilter(BossFilter("sword", MetaModDirection.Decrease, BossModAmount.Large))
         addFilter(BossFilter("helmet", MetaModDirection.Increase, BossModAmount.Moderate))
     }
 

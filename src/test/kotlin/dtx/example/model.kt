@@ -1,21 +1,46 @@
 package dtx.example
 
-import dtx.core.singleRollable
 import dtx.example.rs_tables.ChampionType
+import dtx.example.rs_tables.ClueTier
 
-data class Item(
-    val itemId: String,
-    val itemAmount: Int = 1
-)
+sealed interface Item {
 
-fun Item(itemId: String, amount: RandomIntRange) = singleRollable<Player, Item> {
+    val itemId: String
 
-    result {
-        Item(itemId, amount.random())
+    val itemAmount: Int
+
+    companion object {
+        operator fun invoke(itemId: String, amount: Int = 1): Item = ConcreteItem(itemId, amount)
+        operator fun invoke(itemId: String, min: Int, max: Int): Item = RandAmtItem(itemId, min, max)
+        operator fun invoke(itemId: String, range: RandomIntRange): Item = RandAmtItem(itemId, range.start, range.endInclusive)
+        operator fun invoke(itemId: String, range: IntRange): Item = Item(itemId, range.toRandomIntRange())
+
+    }
+
+    fun copyItem() = if (this is ConcreteItem) {
+        copy()
+    } else {
+        this as RandAmtItem
+        copy()
     }
 }
 
-inline fun Item(itemId: String, amountRange: IntRange) = Item(itemId, amountRange.toRandomIntRange())
+data class RandAmtItem(
+    override val itemId: String,
+    internal val minAmount: Int,
+    internal val maxAmount: Int,
+): Item {
+
+    internal val range = (minAmount ..< maxAmount).toRandomIntRange()
+
+    override val itemAmount: Int get() = range.random()
+}
+
+data class ConcreteItem(
+    override val itemId: String,
+    override val itemAmount: Int = 1
+): Item
+
 
 enum class Gender {
     PlatelegEnjoyer, PlateskirtEnthusiast;

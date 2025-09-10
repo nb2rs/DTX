@@ -1,18 +1,15 @@
 package dtx.example
 
 import dtx.core.ArgMap
-import dtx.impl.MetaEntryFilter
-import dtx.impl.MetaRollable
-import dtx.impl.MetaWeightedRollable
-import dtx.impl.metaWeightedTable
+import dtx.impl.*
 import kotlin.random.Random
 
 enum class OreModAmount(val modifyBy: Double) {
     Miniscule(0.125), Slight(0.25), Small(0.5), Moderate(1.0), Medium(2.0), Large(4.0);
 }
 
-enum class MetaModDirection(val operation: (Double, Double) -> Double) {
-    Increase(Double::plus), Decrease(Double::minus);
+enum class MetaModDirection(val operation: (Double, Double) -> Double, val opChar: Char) {
+    Increase(Double::plus, '+'), Decrease(Double::minus, '-');
 }
 
 data class OreFilter(
@@ -27,8 +24,11 @@ data class OreFilter(
 
     override fun modifyEntry(entry: MetaRollable<Player, Item>) {
         entry as MetaWeightedRollable<Player, Item>
-        println("Modifying ${entry.identifier} by ${type.modifyBy} (${entry.currentWeight} -> ${direction.operation(entry.currentWeight, direction.operation(0.0, type.modifyBy))})")
-        entry.increaseCurrentWeightBy(direction.operation(0.0, type.modifyBy))
+        val old = entry.weight
+        val modBy = direction.operation(0.0, type.modifyBy)
+        val new = direction.operation(0.0, direction.operation(old, modBy))
+        println("Modifying ${entry.identifier} by ${type.modifyBy} ($old -> $new (range[${entry.minimumWeight} - ${entry.maximumWeight}])")
+        entry.increaseCurrentWeightBy(modBy)
     }
 }
 
