@@ -1,9 +1,8 @@
 package dtx.example.rs_tables
 
+import dtx.core.RollResult
 import dtx.core.singleRollable
-import dtx.example.Item
-import dtx.example.Player
-import dtx.example.sendMessage
+import dtx.example.*
 
 val LongAndCurvedBoneTable = rsWeightedTable<Player, Item> {
     name("Long and Curved Bone table")
@@ -11,30 +10,75 @@ val LongAndCurvedBoneTable = rsWeightedTable<Player, Item> {
     1 weight Item("curved_bone")
 }
 
-enum class ClueDifficulty(val isFreeToPlay: Boolean = false) {
+enum class ClueTier(val isFreeToPlay: Boolean = false) {
     Beginner(true), Easy, Medium, Hard, Elite, Master;
 
-    val item get() = Item("clue_scroll_(${this.name.lowercase()})")
+    val scrollBox = Item("scroll_box_(${this.name.lowercase()})")
+
+    val clueScroll = Item("clue_scroll_${this.name.lowercase()}")
 }
 
-fun clueScrollDrop(difficulty: ClueDifficulty) = singleRollable<Player, Item> {
+inline fun Player.hasUnlockedScrollBoxes(): Boolean = checkQuestStatus(xmts_quest) is QuestStatus.Completed
+inline fun Player.canCollectScroll(clueTier: ClueTier): Boolean = if (hasUnlockedScrollBoxes()) {
+    val amountPosessed = posessesHowMany(clueTier.scrollBox)
+    val cap = scrollCapForTier(clueTier)
+    amountPosessed > cap
+} else {
+    val amountPosessed = posessesHowMany(clueTier.clueScroll)
+    amountPosessed == 0
+}
 
-    val item = difficulty.item
+fun clueDrop(clueTier: ClueTier) = singleRollable<Player, Item> {
 
-    shouldRoll { player ->
+    vetoRoll { player ->
 
-        if (difficulty.isFreeToPlay) {
-            return@shouldRoll true
+        if (!player.isOnMemberWorld() && !clueTier.isFreeToPlay) {
+            return@vetoRoll true
         }
 
-        if (!player.isOnMemberWorld()) {
-            return@shouldRoll false
+        if (player.canCollectScroll(clueTier)) {
+            return@vetoRoll false
         }
 
-        !player.posesses(item)
+        true
     }
 
-    result(difficulty.item.copy())
+    onVeto { player ->
+
+        val sneakingSuspicioun = buildString {
+            append("You have a sneaking suspicion that you would have received a $clueTier scroll")
+
+            if (player.hasUnlockedScrollBoxes()) {
+                append(" box")
+            }
+            append(".")
+        }
+
+        player.sendMessage(sneakingSuspicioun)
+
+        RollResult.Nothing()
+    }
+
+    onRollCompleted { player, result ->
+        result as RollResult.Single<Item>
+        player.inventory.add(result.result)
+        val msg = buildString {
+            append("You find a $clueTier scroll ")
+            if (player.hasUnlockedScrollBoxes()) {
+                append("box")
+            }
+            append(" and pick it up.")
+        }
+        player.sendMessage(msg)
+    }
+
+    selectResult { player, otherArgs ->
+        if (player.hasUnlockedScrollBoxes()) {
+            RollResult.Single(clueTier.scrollBox)
+        } else {
+            RollResult.Single(clueTier.clueScroll)
+        }
+    }
 }
 
 
@@ -48,13 +92,13 @@ fun championScroll(type: ChampionType) = singleRollable<Player, Item> {
 
     val scrollItem = Item("${type.name.lowercase()}_champion_scroll")
 
-    shouldRoll { target ->
+    vetoRoll { target ->
 
         if (target.hasChampionScrollComplete(type) || target.posesses(scrollItem)) {
 
             target.sendMessage("You have a funny feeling that you would have recieved a Champion's scroll...")
 
-            return@shouldRoll false
+            return@vetoRoll false
         }
 
         target.questPoints > 32
@@ -63,7 +107,7 @@ fun championScroll(type: ChampionType) = singleRollable<Player, Item> {
 
     }
 
-    onSelect { target, result ->
+    onRollCompleted { target, result ->
         target.sendMessage("A Champion's scroll falls to the ground as you slay your opponent.")
     }
 
