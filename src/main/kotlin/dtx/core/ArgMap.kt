@@ -4,7 +4,7 @@ public data class ArgKey<T>(val str: String, val default: T)
 
 public data class ArgPair<T>(val key: ArgKey<T>, val value: T)
 
-public infix fun <T> ArgKey<T>.with(other: T) = ArgPair(this, other)
+public infix fun <T> ArgKey<T>.with(other: T): ArgPair<T> = ArgPair(this, other)
 
 public class ArgMap private constructor(private val locked: Boolean = false) {
 
