@@ -1,29 +1,22 @@
 package dtx.example.rs_tables
-import dtx.example.Player
 import dtx.core.ArgMap
 import dtx.core.RollResult
 import dtx.core.Rollable
-import dtx.core.ShouldRoll
-import dtx.core.defaultShouldRoll
 import dtx.core.flattenToList
+import dtx.table.TableHooks
 
-data class RSDropTable<T, R>(
-    val identifier: String,
-    val guaranteed: RSGuaranteedTable<T, R> = RSGuaranteedTable.Empty(),
-    val preRoll: RSPreRollTable<T, R> = RSPreRollTable.Empty(),
-    val mainTable: RSWeightedTable<T, R> = RSWeightedTable.Empty(),
-    val tertiaries: RSPreRollTable<T, R> = RSPreRollTable.Empty(),
-    private val shouldRollFunc: ShouldRoll<T> = ::defaultShouldRoll,
-): RSTable<T, R> {
+class RSDropTable<T, R>(
+    public override val tableIdentifier: String,
+    private val guaranteed: RSGuaranteedTable<T, R> = RSGuaranteedTable.Empty(),
+    private val preRoll: RSPreRollTable<T, R> = RSPreRollTable.Empty(),
+    private val mainTable: RSWeightedTable<T, R> = RSWeightedTable.Empty(),
+    private val tertiaries: RSPreRollTable<T, R> = RSPreRollTable.Empty(),
+    private val hooks: TableHooks<T, R> = TableHooks.Default(),
+): RSTable<T, R>, TableHooks<T, R> by hooks {
 
-    override val tableEntries: Collection<Rollable<T, R>> = emptyList()
+    override val tableEntries: Collection<Rollable<T, R>> = listOf(guaranteed, preRoll, mainTable, tertiaries)
 
-    override fun shouldRoll(target: T): Boolean {
-        return shouldRollFunc(target)
-    }
-
-    override fun roll(target: T, otherArgs: ArgMap): RollResult<R> {
-
+    override fun selectResult(target: T, otherArgs: ArgMap): RollResult<R> {
         val results = mutableListOf<RollResult<R>>()
         results.add(guaranteed.roll(target, otherArgs))
         results.add(preRoll.roll(target, otherArgs))
