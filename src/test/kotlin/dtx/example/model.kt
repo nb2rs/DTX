@@ -104,8 +104,12 @@ data class Player(
     fun scrollCapForTier(difficulty: ClueTier): Int = 2 + scrollCapIncreases[difficulty]!!
 }
 
+var allowPlayerMessages = true
+
 fun Player.sendMessage(message: String) {
-    println("[to: $username]: $message")
+    if (allowPlayerMessages) {
+        println("[to: $username]: $message")
+    }
 }
 
 
