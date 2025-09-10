@@ -1,17 +1,10 @@
 package dtx.impl
 
 import dtx.core.ArgMap
-import dtx.core.BaseDroprate
-import dtx.core.OnSelect
-import dtx.core.RollModifier
 import dtx.core.Rollable
 import dtx.core.RollResult
-import dtx.core.Rollable.Companion.defaultOnSelect
-import dtx.core.Rollable.Companion.defaultGetBaseDropRate
-import dtx.core.ShouldRoll
-import dtx.core.defaultShouldRoll
-import dtx.table.AbstractTableBuilder
-import dtx.table.Table.Companion.defaultRollModifier
+import dtx.table.DefaultTableBuilder
+import dtx.table.TableHooks
 import dtx.util.NoTransform
 import dtx.util.isSortedBy
 
@@ -24,6 +17,10 @@ public class MetaWeightedRollable<T, R>(
     public var currentWeight: Double = initialWeight.coerceIn(minimumWeight, maximumWeight),
     public override val metaEntryFilters: MutableSet<MetaEntryFilter<T, R>> = mutableSetOf()
 ): MetaRollable<T, R>, WeightedRollable<T, R> {
+
+    override fun selectResult(target: T, otherArgs: ArgMap): RollResult<R> {
+        return rollable.selectResult(target, otherArgs)
+    }
 
     public override val weight: Double by ::currentWeight
 
@@ -38,10 +35,6 @@ public class MetaWeightedRollable<T, R>(
 
     public fun decreaseCurrentWeightBy(amount: Double) {
         currentWeight = currentWeight - amount.coerceIn(minimumWeight, maximumWeight)
-    }
-
-    override fun roll(target: T, otherArgs: ArgMap): RollResult<R> {
-        return super<MetaRollable>.roll(target, otherArgs)
     }
 }
 
@@ -85,13 +78,9 @@ public class MetaWeightedRollableBuilder<T, R>: AbstractMetaRollableBuilder<T, R
 public class MetaWeightedTable<T, R>(
     tableName: String,
     entries: List<MetaWeightedRollable<T, R>>,
-    shouldRollFunc: ShouldRoll<T> = ::defaultShouldRoll,
-    rollModifierFunc: RollModifier<T> = ::defaultRollModifier,
-    getTargetDropRate: BaseDroprate<T> = ::defaultGetBaseDropRate,
-    onSelectFunc: OnSelect<T, R> = ::defaultOnSelect
+    hooks: TableHooks<T, R>,
 ): MetaTable<T, R>, WeightedTableImpl<T, R>(
-    tableName, entries, shouldRollFunc,
-    rollModifierFunc, getTargetDropRate, onSelectFunc
+    tableName, entries, hooks
 ) {
     public override val tableEntries: MutableList<MetaWeightedRollable<T, R>> = entries
         .map(NoTransform())
@@ -122,12 +111,20 @@ public class MetaWeightedTable<T, R>(
     }
 }
 
-public class MetaWeightedTableBuilder<T, R>: AbstractTableBuilder<T, R, MetaWeightedTable<T, R>, MetaWeightedRollable<T, R>, MetaWeightedTableBuilder<T, R>>() {
+public class MetaWeightedTableBuilder<T, R>: DefaultTableBuilder<
+        T,
+        R,
+        MetaWeightedRollable<T, R>,
+        MetaWeightedTable<T, R>,
+>() {
 
     override val entries: MutableList<MetaWeightedRollable<T, R>> = mutableListOf()
 
     public infix fun Double.weight(rollable: MetaWeightedRollable<T, R>): MetaWeightedTableBuilder<T, R> {
-        return addEntry(rollable)
+
+        addEntry(rollable)
+
+        return this@MetaWeightedTableBuilder
     }
 
     public inline infix fun Double.weight(
@@ -139,16 +136,12 @@ public class MetaWeightedTableBuilder<T, R>: AbstractTableBuilder<T, R, MetaWeig
         return weight(builder.build())
     }
 
-    public inline infix fun Int.weight(rollable: MetaWeightedRollable<T, R>): MetaWeightedTableBuilder<T, R> {
+    public infix fun Int.weight(rollable: MetaWeightedRollable<T, R>): MetaWeightedTableBuilder<T, R> {
         return toDouble().weight(rollable)
     }
 
     public inline infix fun Int.weight(builder: MetaWeightedRollableBuilder<T, R>.() -> Unit): MetaWeightedTableBuilder<T, R> {
         return toDouble().weight(builder)
-    }
-
-    public override fun build(): MetaWeightedTable<T, R> {
-        return MetaWeightedTable(tableName, entries, shouldRollFunc, getRollModFunc, getDropRateFunc, onSelectFunc)
     }
 }
 
