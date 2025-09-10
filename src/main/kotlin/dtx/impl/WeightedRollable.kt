@@ -2,6 +2,7 @@ package dtx.impl
 
 import dtx.core.ArgMap
 import dtx.core.Rollable
+import dtx.core.RollableHooks
 import dtx.core.RollResult
 
 public interface WeightedRollable<T, R>: Rollable<T, R> {
@@ -17,19 +18,35 @@ public interface WeightedRollable<T, R>: Rollable<T, R> {
         return rollable
     }
 
-    public override fun roll(target: T, otherArgs: ArgMap): RollResult<R> {
-        return rollable.roll(target, otherArgs)
-    }
-
     private data object Empty: WeightedRollable<Any?, Any?> {
 
-        override fun shouldRoll(target: Any?): Boolean {
+        override fun includeInRoll(onTarget: Any?): Boolean {
             return false
+        }
+
+        override fun selectResult(target: Any?, otherArgs: ArgMap): RollResult<Any?> {
+            return rollable.roll(target, otherArgs)
         }
 
         override val weight: Double = 0.0
 
         override val rollable: Rollable<Any?, Any?> = Rollable.Empty()
+
+        override fun vetoRoll(onTarget: Any?): Boolean {
+            return true
+        }
+
+        override fun onRollVetoed(onTarget: Any?): RollResult<Any?> {
+            return RollResult.Nothing()
+        }
+
+        override fun transformResult(withTarget: Any?, result: RollResult<Any?>): RollResult<Any?> {
+            return result
+        }
+
+        override fun onRollCompleted(target: Any?, result: RollResult<Any?>) {
+            // Do nothing
+        }
     }
 
     public companion object {
@@ -43,8 +60,46 @@ public interface WeightedRollable<T, R>: Rollable<T, R> {
 public data class WeightedRollableImpl<T, R>(
     override val weight: Double,
     override val rollable: Rollable<T, R>,
-): WeightedRollable<T, R> {
-    override fun shouldRoll(target: T): Boolean {
-        return rollable.shouldRoll(target)
+    private val hooks: RollableHooks<T, R> = RollableHooks.Default()
+): WeightedRollable<T, R>, RollableHooks<T, R> by hooks {
+
+    override fun includeInRoll(onTarget: T): Boolean {
+        return rollable.includeInRoll(onTarget)
+    }
+
+    override fun selectResult(target: T, otherArgs: ArgMap): RollResult<R> {
+        return rollable.roll(target, otherArgs)
+    }
+}
+
+public class WeightedCollectionRollable<T, R>(
+    override val weight: Double,
+    internal val rollables: Collection<WeightedRollable<T, R>>,
+    internal val hooks: RollableHooks<T, R> = RollableHooks.Default(),
+): WeightedRollable<T, R>, RollableHooks<T, R> by hooks {
+
+    override fun includeInRoll(onTarget: T): Boolean {
+        return rollables.any { it.includeInRoll(onTarget) }
+    }
+
+    override val rollable: Rollable<T, R> get() = rollables.filter { it.weight > 0.0 }.random()
+
+    override fun selectResult(target: T, otherArgs: ArgMap): RollResult<R> {
+
+        if (rollables.isEmpty()) {
+            return RollResult.Nothing()
+        }
+
+        if (rollables.all { !it.includeInRoll(target) }) {
+            return RollResult.Nothing()
+        }
+
+        var picked = rollable
+
+        while (!picked.includeInRoll(target)) {
+            picked = rollable
+        }
+
+        return picked.roll(target, otherArgs)
     }
 }
