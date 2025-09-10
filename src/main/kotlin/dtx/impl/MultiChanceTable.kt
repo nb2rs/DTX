@@ -1,17 +1,10 @@
 package dtx.impl
 
 import dtx.core.ArgMap
-import dtx.core.BaseDroprate
-import dtx.core.OnSelect
-import dtx.core.RollModifier
 import dtx.core.RollResult
-import dtx.core.Rollable.Companion.defaultGetBaseDropRate
-import dtx.core.Rollable.Companion.defaultOnSelect
-import dtx.core.ShouldRoll
-import dtx.core.defaultShouldRoll
 import dtx.core.flattenToList
 import dtx.table.Table
-import dtx.table.Table.Companion.defaultRollModifier
+import dtx.table.TableHooks
 import dtx.util.NoTransform
 import kotlin.random.Random
 
@@ -23,69 +16,38 @@ public interface MultiChanceTable<T, R>: Table<T, R> {
 }
 
 public open class MultiChanceTableImpl<T, R>(
-    public val tableName: String,
+    public override val tableIdentifier: String,
     entries: List<ChanceRollable<T, R>>,
-    protected val shouldRollFunc: ShouldRoll<T> = ::defaultShouldRoll,
-    protected val rollModifierFunc: RollModifier<T> = ::defaultRollModifier,
-    protected val getBaseDropRateFunc: BaseDroprate<T> = ::defaultGetBaseDropRate,
-    protected val onSelectFunc: OnSelect<T, R> = ::defaultOnSelect
-): MultiChanceTable<T, R> {
+    internal val hooks: TableHooks<T, R>,
+): MultiChanceTable<T, R>, TableHooks<T, R> by hooks {
 
     public override val tableEntries: List<ChanceRollable<T, R>> = entries.map(NoTransform())
 
-    override fun shouldRoll(target: T): Boolean {
-        return shouldRollFunc(target)
-    }
+    public override fun selectResult(target: T, otherArgs: ArgMap): RollResult<R> {
 
-    public override fun onSelect(target: T, result: RollResult<R>) {
-        return onSelectFunc(target, result)
-    }
+        val entries = tableEntries.filter { it.includeInRoll(target) }
 
-    public override fun rollModifier(target: T, percentage: Double): Double {
-        return rollModifierFunc(target, percentage)
-    }
-
-    public override fun getBaseDropRate(target: T): Double {
-        return getBaseDropRateFunc(target)
-    }
-
-    public override fun roll(target: T, otherArgs: ArgMap): RollResult<R> {
-
-        if (!shouldRoll(target)) {
+        if (entries.isEmpty()) {
             return RollResult.Nothing()
         }
 
-        if (tableEntries.isEmpty()) {
-            return RollResult.Nothing()
-        }
+        val modifier = rollModifier(target, baseRollFor(target))
 
-        val pickedEntries = mutableListOf<ChanceRollable<T, R>>()
+        val filtered = entries.filter { entry ->
 
-        val modifier = rollModifier(target, getBaseDropRate(target))
-
-        tableEntries.forEach { entry ->
-
-            if (entry.chance == 100.0) {
-
-                pickedEntries.add(entry)
-
-                return@forEach
+            if (entry.chance >= 100.0) {
+                return@filter true
             }
 
             val roll = Random.nextDouble(0.0, maxRollChance)
+            val select = (roll * modifier) <= entry.chance
 
-            if (roll * modifier <= entry.chance) {
-                pickedEntries.add(entry)
-            }
+            select
         }
 
-        val results = pickedEntries.map { it.roll(target, otherArgs) }.flattenToList()
+        val rolled = filtered.map { entry -> entry.roll(target, otherArgs) }
+        val flattened = rolled.flattenToList()
 
-        onSelect(target, results)
-
-        return results
+        return flattened
     }
-
-
-    public override fun toString(): String = "MultiChanceTable[$tableName]"
 }

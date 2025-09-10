@@ -3,8 +3,7 @@ package dtx.impl
 import dtx.core.ArgMap
 import dtx.core.RollResult
 import dtx.core.Rollable
-import dtx.core.ShouldRoll
-import dtx.core.defaultShouldRoll
+import dtx.core.RollableHooks
 
 public interface ChanceRollable<T, R>: Rollable<T, R> {
 
@@ -19,19 +18,35 @@ public interface ChanceRollable<T, R>: Rollable<T, R> {
         return rollable
     }
 
-    public override fun roll(target: T, otherArgs: ArgMap): RollResult<R> {
-        return rollable.roll(target, otherArgs)
-    }
-
     private data object Empty: ChanceRollable<Any?, Any?> {
 
-        override fun shouldRoll(target: Any?): Boolean {
+        override fun includeInRoll(onTarget: Any?): Boolean {
             return false
+        }
+
+        override fun selectResult(target: Any?, otherArgs: ArgMap): RollResult<Any?> {
+            return rollable.roll(target, otherArgs)
         }
 
         override val chance: Double = 0.0
 
         override val rollable: Rollable<Any?, Any?> = Rollable.Empty()
+
+        override fun vetoRoll(onTarget: Any?): Boolean {
+            return true
+        }
+
+        override fun onRollVetoed(onTarget: Any?): RollResult<Any?> {
+            return RollResult.Nothing()
+        }
+
+        override fun transformResult(withTarget: Any?, result: RollResult<Any?>): RollResult<Any?> {
+            return result
+        }
+
+        override fun onRollCompleted(target: Any?, result: RollResult<Any?>) {
+            // Do nothing
+        }
     }
 
     public companion object {
@@ -45,18 +60,10 @@ public interface ChanceRollable<T, R>: Rollable<T, R> {
 public class ChanceRollableImpl<T, R>(
     override val chance: Double,
     override val rollable: Rollable<T, R>,
-    private val shouldRollFunc: ShouldRoll<T> = ::defaultShouldRoll
-): ChanceRollable<T, R> {
-    override fun shouldRoll(target: T): Boolean {
-        return shouldRollFunc(target)
-    }
+    private val hooks: RollableHooks<T, R> = RollableHooks.Default()
+): ChanceRollable<T, R>, RollableHooks<T, R> by hooks {
 
-    override fun roll(target: T, otherArgs: ArgMap): RollResult<R> {
-
-        if (!shouldRoll(target)) {
-            return RollResult.Nothing()
-        }
-
+    override fun selectResult(target: T, otherArgs: ArgMap): RollResult<R> {
         return rollable.roll(target, otherArgs)
     }
 }
