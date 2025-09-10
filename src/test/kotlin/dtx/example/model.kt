@@ -46,12 +46,24 @@ enum class Gender {
     PlatelegEnjoyer, PlateskirtEnthusiast;
 }
 
+ sealed interface QuestStatus {
+     data object NotStarted : QuestStatus
+     data class InProgress(val progressFlags: Long) : QuestStatus
+     data object Completed : QuestStatus
+}
+
+val xmts_quest = "x_marks_the_spot"
+
 data class Player(
     val username: String,
     var dropRateBonus: Double = 0.0,
-    val bank: Collection<Item> = listOf(),
-    val inventory: Collection<Item> = listOf(),
-    val equipment: Collection<Item> = listOf(),
+    val bank: MutableCollection<Item> = mutableListOf(),
+    val inventory: MutableCollection<Item> = mutableListOf(),
+    val equipment: MutableCollection<Item> = mutableListOf(),
+    val quests: MutableMap<String, QuestStatus> = mutableMapOf(xmts_quest to QuestStatus.NotStarted),
+    val scrollCapIncreases: MutableMap<ClueTier, Int> = buildMap {
+        ClueTier.entries.forEach { put(it, 0) }
+    }.toMutableMap(),
     var questPoints: Int = 0,
     var currentWorld: Int = 1,
     var gender: Gender = Gender.PlateskirtEnthusiast,
@@ -60,15 +72,36 @@ data class Player(
     }.toMutableMap()
 ) {
 
-    fun isWearing(item: Item): Boolean = equipment.any { it.itemId == item.itemId }
+    fun isWearing(item: String): Boolean = equipment.any { it.itemId == item }
 
-    fun isWearing(itemId: String): Boolean = equipment.any { it.itemId == itemId }
+    fun isWearing(item: Item): Boolean = isWearing(item.itemId)
 
-    fun posesses(item: Item): Boolean = item in inventory || item in bank || item in equipment
+    fun posesses(item: String): Boolean = inventory.any { it.itemId == item } || bank.any { it.itemId == item } || isWearing(item)
+
+    fun posesses(item: Item): Boolean = posesses(item.itemId)
+
+    fun posessesHowMany(item: String): Int {
+        val inventoryCount = inventory.filter { it.itemId == item }.sumOf { it.itemAmount }
+        val bankCount = bank.filter { it.itemId == item }.sumOf { it.itemAmount }
+        val equipmentCount = equipment.filter { it.itemId == item }.sumOf { it.itemAmount }
+        return inventoryCount + bankCount + equipmentCount
+    }
+
+    fun posessesHowMany(checkItem: Item): Int = posessesHowMany(checkItem.itemId)
 
     fun isOnMemberWorld(): Boolean = currentWorld > 1
 
+    fun updateQuestStatus(questName: String, status: QuestStatus) {
+        quests[questName] = status
+    }
+
+    fun checkQuestStatus(questName: String): QuestStatus {
+        return quests[questName] ?: QuestStatus.NotStarted
+    }
+
     fun hasChampionScrollComplete(type: ChampionType): Boolean = hasScrollCompleted[type]!!
+
+    fun scrollCapForTier(difficulty: ClueTier): Int = 2 + scrollCapIncreases[difficulty]!!
 }
 
 fun Player.sendMessage(message: String) {
