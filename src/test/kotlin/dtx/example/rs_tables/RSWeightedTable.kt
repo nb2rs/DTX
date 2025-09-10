@@ -1,58 +1,38 @@
 package dtx.example.rs_tables
 
 import dtx.core.ArgMap
-import dtx.core.BaseDroprate
-import dtx.core.RollModifier
 import dtx.core.RollResult
-import dtx.core.Rollable
-import dtx.core.ShouldRoll
-import dtx.core.defaultShouldRoll
 import dtx.impl.WeightedRollable
 import dtx.impl.WeightedTable
-import dtx.table.Table
+import dtx.table.TableHooks
 import kotlin.random.Random
 
 class RSWeightedTable<T, R>(
-    public val tableIdentifier: String,
-    entries: List<WeightedRollable<T, R>>,
-    private val baseDropRateFunc: BaseDroprate<T> = Rollable.Companion::defaultGetBaseDropRate,
-    private val rollModFunc: RollModifier<T> = Table.Companion::defaultRollModifier,
-    private val shouldRollFunc: ShouldRoll<T> = ::defaultShouldRoll
-): RSTable<T, R>, WeightedTable<T, R> {
+    public override val tableIdentifier: String,
+    public override val tableEntries: Collection<WeightedRollable<T, R>>,
+    private val hooks: TableHooks<T, R> = TableHooks.Default(),
+): RSTable<T, R>, WeightedTable<T, R>, TableHooks<T, R> by hooks {
 
-    public override val tableEntries: List<RSWeightEntry<T, R>> = buildList {
+    override fun selectEntries(byTarget: T): List<RSWeightEntry<T, R>>  = buildList {
 
         var total = 0
 
-        entries.map {
-
-            val upper = total + it.weight
-            val entry = RSWeightEntry(total, upper.toInt(), it)
-            total = entry.rangeEnd
-            add(entry)
+        tableEntries.forEach {
+            if (it.includeInRoll(byTarget)) {
+                val upper = total + it.weight
+                val entry = RSWeightEntry(total, upper.toInt(), it.rollable)
+                total = entry.rangeEnd
+                add(entry)
+            }
         }
     }
 
     public override val maxRoll: Double
-        get() = tableEntries.maxOf { it.rangeEnd }.toDouble()
+        get() = tableEntries.maxOf { it.weight }
 
-    override fun shouldRoll(target: T): Boolean {
-        return shouldRollFunc(target)
-    }
+    override fun selectResult(target: T, otherArgs: ArgMap): RollResult<R> {
 
-    override fun getBaseDropRate(target: T): Double {
-        return baseDropRateFunc(target)
-    }
-
-    override fun rollModifier(target: T, modByFlatAmount: Double): Double {
-        return rollModFunc(target, modByFlatAmount)
-    }
-
-    override fun roll(target: T, otherArgs: ArgMap): RollResult<R> {
-
-        if (!shouldRoll(target)) {
-            return RollResult.Nothing()
-        }
+        val entries = selectEntries(target)
 
         if (tableEntries.isEmpty()) {
             return RollResult.Nothing()
@@ -62,12 +42,16 @@ class RSWeightedTable<T, R>(
             return tableEntries.first().roll(target, otherArgs)
         }
 
-        val roll = Random.nextInt(0, maxRoll.toInt()) + rollModifier(target, 0.0).toInt()
+        val localMax = entries.maxOf { it.rangeEnd }
 
-        tableEntries.forEach {
+        val baseRoll = Random.nextInt(0, localMax)
+        val flatMod = rollModifier(target, 0.0)
 
-            if (it checkWeight roll) {
-                return it.roll(target, otherArgs)
+        val roll = (baseRoll * flatMod).toInt()
+
+        entries.forEach { entry ->
+            if (entry checkWeight roll) {
+                return entry.roll(target, otherArgs)
             }
         }
 
@@ -76,7 +60,7 @@ class RSWeightedTable<T, R>(
 
     companion object {
 
-        val EmptyTable = RSWeightedTable<Any?, Any?>("", emptyList()) { false }
+        val EmptyTable = RSWeightedTable<Any?, Any?>("", emptyList())
 
         fun <T, R> Empty() = EmptyTable as RSWeightedTable<T, R>
     }
