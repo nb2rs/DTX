@@ -8,15 +8,11 @@ val ringOfWealth = Item("ring_of_wealth")
 
 val megaRareDropTable = rsWeightedTable<Player, Item> {
 
-    modifyRoll { player, baseRoll ->
-        baseRoll + if (player.isWearing(ringOfWealth)) {
-            113.0 // Weight of the 'Nothing' drop
-        } else {
-            0.0
-        }
+    113 weight {
+        shouldInclude { target -> !target.isWearing(ringOfWealth) }
+        result(Item("nothing"))
     }
 
-    113 weight Item("nothing")
     8 weight Item("rune_spear")
     4 weight Item("shield_left_half")
     3 weight Item("dragon_spear")
@@ -24,15 +20,11 @@ val megaRareDropTable = rsWeightedTable<Player, Item> {
 
 val gemDropTable = rsWeightedTable<Player, Item> {
 
-    modifyRoll { player, baseRoll ->
-        baseRoll + if(player.isWearing(ringOfWealth)) {
-            63.0
-        } else {
-            0.0
-        }
+    63 weight {
+        shouldInclude { target -> !target.isWearing(ringOfWealth) }
+        result(Item("nothing"))
     }
 
-    63 weight Item("nothing")
     32 weight Item("uncut_sapphire")
     16 weight Item("uncut_emerald")
     8 weight Item("uncut_ruby")
@@ -82,6 +74,6 @@ fun main() {
     println("Without ROW")
     rollRdt(examplePlayer, rolls)
     println("\n\nWith ROW")
-    val rowPlayer = examplePlayer.copy(equipment = listOf(ringOfWealth))
+    val rowPlayer = examplePlayer.copy(equipment = mutableListOf(ringOfWealth))
     rollRdt(rowPlayer, rolls)
 }
