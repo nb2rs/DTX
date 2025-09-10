@@ -5,10 +5,8 @@ import dtx.example.Item
 import dtx.example.Player
 import kotlin.random.Random
 
-// a whole table for 1 dragonstone? crazy
-val dragonstoneTable = rsGuaranteedTable<Player, Item> {
-    add(Item("uncut_dragonstone"))
-}
+val dragonstoneTable = guaranteedSingle<Player, Item>(Item("uncut_dragonstone"))
+
 
 val crystalChestMain = rsWeightedTable<Player, Item> {
 

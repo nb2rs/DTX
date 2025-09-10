@@ -71,3 +71,7 @@ fun <T, R> rsGuaranteedTable(block: RSGuaranteedTableBuilder<T, R>.() -> Unit): 
 
     return builder.build()
 }
+
+fun <T, R> guaranteedSingle(result: R): RSGuaranteedTable<T, R> = rsGuaranteedTable {
+    add(result)
+}
