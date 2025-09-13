@@ -1,4 +1,4 @@
-package dtx.impl
+package dtx.impl.matrix
 
 import dtx.core.ArgMap
 import dtx.core.Rollable

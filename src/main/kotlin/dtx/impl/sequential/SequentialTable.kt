@@ -1,4 +1,4 @@
-package dtx.impl
+package dtx.impl.sequential
 
 import dtx.core.ArgMap
 import dtx.core.ModifyRoll

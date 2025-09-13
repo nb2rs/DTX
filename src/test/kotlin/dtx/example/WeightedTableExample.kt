@@ -1,9 +1,8 @@
 package dtx.example
 
-import dtx.impl.multiChanceTable
-import dtx.impl.percent
-import dtx.impl.weightedTable
-
+import dtx.impl.chance.multiChanceTable
+import dtx.impl.misc.percent
+import dtx.impl.weighted.weightedTable
 
 /**
  * Goblin unique drops example

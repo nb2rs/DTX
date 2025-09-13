@@ -1,6 +1,6 @@
 package dtx.example
 
-import dtx.impl.sequentialTable
+import dtx.impl.sequential.sequentialTable
 
 /**
  * Good for stuff like dailies, weeklies, something that has some revolving reward.

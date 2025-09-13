@@ -2,8 +2,8 @@ package dtx.example.rs_tables
 
 import dtx.core.ArgMap
 import dtx.core.RollResult
-import dtx.impl.WeightedRollable
-import dtx.impl.WeightedTable
+import dtx.impl.weighted.WeightedRollable
+import dtx.impl.weighted.WeightedTable
 import dtx.table.TableHooks
 import kotlin.random.Random
 

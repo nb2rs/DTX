@@ -1,13 +1,11 @@
 package dtx.example
 
 import dtx.core.ArgMap
-import dtx.core.RollResult
-import dtx.impl.percent
-import dtx.impl.MetaChanceRollable
-import dtx.impl.MetaEntryFilter
-import dtx.impl.MetaRollable
-import dtx.impl.metaMultiChanceTable
-import kotlin.random.Random
+import dtx.impl.chance.MetaChanceRollable
+import dtx.impl.chance.metaMultiChanceTable
+import dtx.impl.meta.MetaEntryFilter
+import dtx.impl.meta.MetaRollable
+import dtx.impl.misc.percent
 
 enum class BossModAmount(val modifyBy: Double) {
     Miniscule(0.025), Slight(0.05), Small(0.1), Moderate(1.0), Medium(2.0), Large(5.0);

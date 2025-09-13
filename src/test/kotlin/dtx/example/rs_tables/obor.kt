@@ -6,6 +6,7 @@ import dtx.core.flatten
 import dtx.core.singleRollable
 import dtx.example.Item
 import dtx.example.Player
+import dtx.example.allowPlayerMessages
 import dtx.example.examplePlayer
 import dtx.example.randTo
 
@@ -146,7 +147,7 @@ fun oborRollComparison(player: Player, rolls: Int = 817_368) {
 }
 
 fun main() {
-    oborRollComparison(examplePlayer)
+    allowPlayerMessages = false
     oborRollComparison(examplePlayer)
     examplePlayer.currentWorld = 2
     examplePlayer.questPoints = 33

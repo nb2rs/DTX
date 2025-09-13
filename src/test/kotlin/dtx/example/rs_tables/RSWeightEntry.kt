@@ -1,8 +1,8 @@
 package dtx.example.rs_tables
 
 import dtx.core.Rollable
-import dtx.impl.WeightedRollable
-import dtx.impl.WeightedRollableImpl
+import dtx.impl.weighted.WeightedRollable
+import dtx.impl.weighted.WeightedRollableImpl
 
 class RSWeightEntry<T, R>(
     val rangeStart: Int,

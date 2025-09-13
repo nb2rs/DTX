@@ -1,10 +1,7 @@
 package dtx.example.rs_tables
 
-import dtx.impl.ChanceRollable
-import dtx.impl.MultiChanceTable
-import dtx.impl.MultiChanceTableBuilder
-import dtx.impl.MultiChanceTableImpl
-import dtx.impl.Percent
+import dtx.impl.chance.*
+import dtx.impl.misc.Percent
 import dtx.table.TableHooks
 
 class RSPreRollTable<T, R>(

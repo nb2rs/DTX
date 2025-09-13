@@ -1,7 +1,7 @@
 package dtx.example
 
 import dtx.core.*
-import dtx.impl.matrixTable
+import dtx.impl.matrix.matrixTable
 
 /**
  * Quirky way to do uniform table.

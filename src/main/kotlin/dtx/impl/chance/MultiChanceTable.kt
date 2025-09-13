@@ -1,4 +1,4 @@
-package dtx.impl
+package dtx.impl.chance
 
 import dtx.core.ArgMap
 import dtx.core.RollResult

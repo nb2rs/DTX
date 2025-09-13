@@ -2,6 +2,8 @@ package dtx.example
 
 import dtx.core.ArgMap
 import dtx.impl.*
+import dtx.impl.meta.*
+import dtx.impl.weighted.*
 import kotlin.random.Random
 
 enum class OreModAmount(val modifyBy: Double) {

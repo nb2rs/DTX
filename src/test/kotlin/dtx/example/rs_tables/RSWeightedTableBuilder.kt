@@ -1,6 +1,7 @@
 package dtx.example.rs_tables
 
-import dtx.impl.WeightedTableBuilder
+import dtx.impl.weighted.WeightedTableBuilder
+
 
 class RSWeightedTableBuilder<T, R>: WeightedTableBuilder<T, R, RSWeightedTable<T, R>>(::RSWeightedTable)
 

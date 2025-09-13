@@ -1,9 +1,10 @@
-package dtx.impl
+package dtx.impl.chance
 
 import dtx.core.ResultSelector
 import dtx.core.Rollable
 import dtx.core.Single
 import dtx.core.SingleByFun
+import dtx.impl.misc.Percent
 import dtx.table.AbstractTableBuilder
 import dtx.table.DefaultTableHooksBuilder
 import dtx.table.TableHooks
@@ -46,7 +47,7 @@ public open class MultiChanceTableBuilder<T, R>: AbstractTableBuilder<
     }
 
     public infix fun Int.chance(rollable: Rollable<T, R>): MultiChanceTableBuilder<T, R> {
-        return percent.chance(rollable = rollable)
+        return chance(rollable = rollable)
     }
 
     public infix fun Int.chance(entry: R): MultiChanceTableBuilder<T, R> {

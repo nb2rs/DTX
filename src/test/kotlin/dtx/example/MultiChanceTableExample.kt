@@ -1,9 +1,9 @@
 package dtx.example
 
 import dtx.core.RollResult
-import dtx.impl.multiChanceTable
-import dtx.impl.percent
-import dtx.impl.weightedTable
+import dtx.impl.chance.*
+import dtx.impl.misc.percent
+import dtx.impl.weighted.weightedTable
 
 /**
  * Simple chicken example with a twist

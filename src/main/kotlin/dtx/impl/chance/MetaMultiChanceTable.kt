@@ -1,8 +1,13 @@
-package dtx.impl
+package dtx.impl.chance
 
 import dtx.core.ArgMap
 import dtx.core.Rollable
 import dtx.core.RollResult
+import dtx.impl.meta.AbstractMetaRollableBuilder
+import dtx.impl.meta.MetaEntryFilter
+import dtx.impl.meta.MetaRollable
+import dtx.impl.meta.MetaTable
+import dtx.impl.misc.Percent
 import dtx.table.AbstractTableBuilder
 import dtx.table.DefaultTableHooksBuilder
 import dtx.table.TableHooks

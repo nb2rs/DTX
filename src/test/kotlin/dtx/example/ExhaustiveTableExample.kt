@@ -1,7 +1,7 @@
 package dtx.example
 
-import dtx.impl.uniformExhaustiveTable
-import dtx.impl.weightedExhaustiveTable
+import dtx.impl.exhaustive.uniformExhaustiveTable
+import dtx.impl.exhaustive.weightedExhaustiveTable
 
 
 /**

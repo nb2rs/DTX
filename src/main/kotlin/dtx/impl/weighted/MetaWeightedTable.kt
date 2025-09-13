@@ -1,10 +1,15 @@
-package dtx.impl
+package dtx.impl.weighted
 
 import dtx.core.ArgMap
 import dtx.core.Rollable
 import dtx.core.RollResult
 import dtx.table.DefaultTableBuilder
 import dtx.table.TableHooks
+import dtx.impl.meta.AbstractMetaRollableBuilder
+import dtx.impl.meta.MetaEntryFilter
+import dtx.impl.meta.MetaEntryFilterBuilder
+import dtx.impl.meta.MetaRollable
+import dtx.impl.meta.MetaTable
 import dtx.util.NoTransform
 import dtx.util.isSortedBy
 
