@@ -1,5 +1,7 @@
 package dtx.core
 
+import dtx.table.DefaultTableHooksBuilder
+
 public interface RollableHooks<T, R> {
 
     /**
@@ -160,6 +162,12 @@ public open class DefaultRollableHooksBuilder<T, R>: AbstractRollableHooksBuilde
     init {
         construct {
             buildBaseRollableHooks()
+        }
+    }
+
+    internal companion object {
+        internal fun <T, R> new() = {
+            DefaultRollableHooksBuilder<T, R>()
         }
     }
 }
