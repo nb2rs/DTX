@@ -49,7 +49,7 @@ val oborMainTable = rsWeightedTable<Player, Item> {
 
 val oborTertiaries = rsTertiaryTable<Player, Item> {
     name("Obor tertiaries")
-    (1 outOf 16) chance Item("giant_key")
+    1 outOf 16 chance Item("giant_key")
     1 outOf 400 chance LongAndCurvedBoneTable
     1 outOf 5_000 chance championScroll(ChampionType.Giant)
 }
