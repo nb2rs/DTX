@@ -21,10 +21,15 @@ class RSPrerollTableBuilder<T, R>: MultiChanceTableBuilder<T, R>() {
 
     infix fun Int.outOf(other: Int) = Percent((toDouble() / other.toDouble()) * 100.0)
 
-    override fun build(): RSPreRollTable<T, R> = RSPreRollTable(
-        tableIdentifier,
-        entries
-    )
+    init {
+        construct {
+            RSPreRollTable<T, R>(
+                tableIdentifier,
+                entries,
+                hooks.build()
+            )
+        }
+    }
 }
 
 inline fun <T, R> rsPrerollTable(block: RSPrerollTableBuilder<T, R>.() -> Unit): RSPreRollTable<T, R> {
@@ -32,7 +37,7 @@ inline fun <T, R> rsPrerollTable(block: RSPrerollTableBuilder<T, R>.() -> Unit):
     val builder = RSPrerollTableBuilder<T, R>()
     builder.apply(block)
 
-    return builder.build()
+    return builder.build() as RSPreRollTable<T, R>
 }
 
 inline fun <T, R> rsTertiaryTable(block: RSPrerollTableBuilder<T, R>.() -> Unit): RSPreRollTable<T, R> {
