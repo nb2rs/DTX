@@ -28,6 +28,12 @@ public open class UniformTableBuilder<
         addEntry(Single(result))
         return this
     }
+
+    init {
+        construct {
+            UniformTable(tableIdentifier, entries, hooks.build())
+        }
+    }
 }
 
 public fun <T, R> uniformTable(
