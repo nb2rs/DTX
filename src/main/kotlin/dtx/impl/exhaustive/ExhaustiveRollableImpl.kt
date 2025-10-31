@@ -15,7 +15,7 @@ public class ExhaustiveRollableImpl<T, R>(
         return rollable.roll(target, otherArgs)
     }
 
-    override fun includeInRoll(onTarget: T): Boolean {
-        return rollable.includeInRoll(onTarget) && rolls > 0
+    override fun includeInRoll(onTarget: T, otherArgs: ArgMap): Boolean {
+        return rollable.includeInRoll(onTarget, otherArgs) && rolls > 0
     }
 }

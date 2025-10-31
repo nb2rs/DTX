@@ -6,14 +6,14 @@ public interface Rollable<T, R>: RollableHooks<T, R> {
 
     public fun roll(target: T, otherArgs: ArgMap = ArgMap.Empty): RollResult<R> {
 
-        if (vetoRoll(target)) {
+        if (vetoRoll(target, otherArgs)) {
             return onRollVetoed(target)
         }
 
         val result = selectResult(target, otherArgs)
         val transformed = transformResult(target, result)
 
-        onRollCompleted(target, transformed)
+        onRollCompleted(target, otherArgs, transformed)
 
         return transformed
     }

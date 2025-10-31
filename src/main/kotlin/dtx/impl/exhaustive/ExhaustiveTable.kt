@@ -24,7 +24,7 @@ public open class ExhaustiveTableImpl<T, R>(
 
     override fun selectResult(target: T, otherArgs: ArgMap): RollResult<R> {
 
-        if (vetoRoll(target)) {
+        if (vetoRoll(target, otherArgs)) {
             return RollResult.Nothing()
         }
 

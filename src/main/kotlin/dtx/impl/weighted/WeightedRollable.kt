@@ -20,7 +20,7 @@ public interface WeightedRollable<T, R>: Rollable<T, R> {
 
     private data object Empty: WeightedRollable<Any?, Any?> {
 
-        override fun includeInRoll(onTarget: Any?): Boolean {
+        override fun includeInRoll(onTarget: Any?, otherArgs: ArgMap): Boolean {
             return false
         }
 
@@ -32,7 +32,7 @@ public interface WeightedRollable<T, R>: Rollable<T, R> {
 
         override val rollable: Rollable<Any?, Any?> = Rollable.Empty()
 
-        override fun vetoRoll(onTarget: Any?): Boolean {
+        override fun vetoRoll(onTarget: Any?, otherArgs: ArgMap): Boolean {
             return true
         }
 
@@ -44,7 +44,7 @@ public interface WeightedRollable<T, R>: Rollable<T, R> {
             return result
         }
 
-        override fun onRollCompleted(target: Any?, result: RollResult<Any?>) {
+        override fun onRollCompleted(target: Any?, otherArgs: ArgMap, result: RollResult<Any?>) {
             // Do nothing
         }
     }
@@ -63,8 +63,8 @@ public data class WeightedRollableImpl<T, R>(
     private val hooks: RollableHooks<T, R> = RollableHooks.Default()
 ): WeightedRollable<T, R>, RollableHooks<T, R> by hooks {
 
-    override fun includeInRoll(onTarget: T): Boolean {
-        return rollable.includeInRoll(onTarget)
+    override fun includeInRoll(onTarget: T, otherArgs: ArgMap): Boolean {
+        return rollable.includeInRoll(onTarget, otherArgs)
     }
 
     override fun selectResult(target: T, otherArgs: ArgMap): RollResult<R> {
@@ -78,8 +78,8 @@ public class WeightedCollectionRollable<T, R>(
     internal val hooks: RollableHooks<T, R> = RollableHooks.Default(),
 ): WeightedRollable<T, R>, RollableHooks<T, R> by hooks {
 
-    override fun includeInRoll(onTarget: T): Boolean {
-        return rollables.any { it.includeInRoll(onTarget) }
+    override fun includeInRoll(onTarget: T, otherArgs: ArgMap): Boolean {
+        return rollables.any { it.includeInRoll(onTarget, otherArgs) }
     }
 
     override val rollable: Rollable<T, R> get() = rollables.filter { it.weight > 0.0 }.random()
@@ -90,13 +90,13 @@ public class WeightedCollectionRollable<T, R>(
             return RollResult.Nothing()
         }
 
-        if (rollables.all { !it.includeInRoll(target) }) {
+        if (rollables.all { !it.includeInRoll(target, otherArgs) }) {
             return RollResult.Nothing()
         }
 
         var picked = rollable
 
-        while (!picked.includeInRoll(target)) {
+        while (!picked.includeInRoll(target, otherArgs)) {
             picked = rollable
         }
 

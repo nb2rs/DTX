@@ -2,6 +2,7 @@ package dtx.example
 
 import dtx.example.rs_tables.ChampionType
 import dtx.example.rs_tables.ClueTier
+import dtx.example.rs_tables.MoonBoss
 
 sealed interface Item {
 
@@ -55,6 +56,51 @@ enum class Gender {
 
 val xmts_quest = "x_marks_the_spot"
 
+class MoonProtection {
+
+    val items = Array<MutableList<String>>(MoonBoss.entries.size) { mutableListOf() }
+
+    fun protectedAgainst(boss: MoonBoss, item: String): Boolean {
+
+        if (items[boss.ordinal].size == 4) {
+            return false
+        }
+
+        return item in items[boss.ordinal]
+    }
+
+    fun addProtectionAgainst(boss: MoonBoss, item: String) {
+        items[boss.ordinal].add(item)
+    }
+}
+
+class MoonsProgress {
+
+    val defeated = BooleanArray(3) { false }
+
+    fun eligibleToOpenChest(): Boolean {
+        return defeated.any()
+    }
+
+    fun forEach(action: (MoonBoss) -> Unit) {
+        defeated.forEachIndexed { index, defeated ->
+            if (defeated) {
+                action(MoonBoss.entries[index])
+            }
+        }
+    }
+
+    fun howManyDefeated(): Int = defeated.count { it }
+
+    fun defeat(boss: MoonBoss) {
+        defeated[boss.ordinal] = true
+    }
+
+    fun reset() {
+        defeated.fill(false)
+    }
+}
+
 data class Player(
     val username: String,
     var dropRateBonus: Double = 0.0,
@@ -70,7 +116,9 @@ data class Player(
     var gender: Gender = Gender.PlateskirtEnthusiast,
     val hasScrollCompleted: MutableMap<ChampionType, Boolean> = buildMap {
         ChampionType.entries.forEach { put(it, false) }
-    }.toMutableMap()
+    }.toMutableMap(),
+    val moonsTempProgress: MoonsProgress = MoonsProgress(),
+    val moonsProtection: MoonProtection = MoonProtection()
 ) {
 
     fun isWearing(item: String): Boolean = equipment.any { it.itemId == item }

@@ -60,7 +60,7 @@ public open class WeightedTableImpl<T, R>(
         }
 
     override fun selectResult(target: T, otherArgs: ArgMap): RollResult<R> {
-        val entries = tableEntries.filter { it.includeInRoll(target) }
+        val entries = tableEntries.filter { it.includeInRoll(target, otherArgs) }
         println("selecting from $entries")
         when (entries.size) {
             0 -> { return RollResult.Nothing() }

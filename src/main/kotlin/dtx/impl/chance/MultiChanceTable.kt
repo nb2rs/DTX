@@ -25,7 +25,7 @@ public open class MultiChanceTableImpl<T, R>(
 
     public override fun selectResult(target: T, otherArgs: ArgMap): RollResult<R> {
 
-        val entries = tableEntries.filter { it.includeInRoll(target) }
+        val entries = tableEntries.filter { it.includeInRoll(target, otherArgs) }
 
         if (entries.isEmpty()) {
             return RollResult.Nothing()

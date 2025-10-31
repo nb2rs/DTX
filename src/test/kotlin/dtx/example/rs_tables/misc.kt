@@ -30,7 +30,7 @@ inline fun Player.canCollectScroll(clueTier: ClueTier): Boolean = if (hasUnlocke
 
 fun clueDrop(clueTier: ClueTier) = singleRollable<Player, Item> {
 
-    vetoRoll { player ->
+    vetoRoll { player, args ->
 
         if (!player.isOnMemberWorld() && !clueTier.isFreeToPlay) {
             return@vetoRoll true
@@ -59,7 +59,7 @@ fun clueDrop(clueTier: ClueTier) = singleRollable<Player, Item> {
         RollResult.Nothing()
     }
 
-    onRollCompleted { player, result ->
+    onRollCompleted { player, args, result ->
         result as RollResult.Single<Item>
         player.inventory.add(result.result)
         val msg = buildString {
@@ -92,7 +92,7 @@ fun championScroll(type: ChampionType) = singleRollable<Player, Item> {
 
     val scrollItem = Item("${type.name.lowercase()}_champion_scroll")
 
-    vetoRoll { target ->
+    vetoRoll { target, args ->
 
         if (target.hasChampionScrollComplete(type) || target.posesses(scrollItem)) {
 
@@ -107,7 +107,7 @@ fun championScroll(type: ChampionType) = singleRollable<Player, Item> {
 
     }
 
-    onRollCompleted { target, result ->
+    onRollCompleted { target, args, result ->
         target.sendMessage("A Champion's scroll falls to the ground as you slay your opponent.")
     }
 

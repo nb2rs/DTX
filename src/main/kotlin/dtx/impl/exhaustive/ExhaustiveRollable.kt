@@ -13,7 +13,7 @@ public interface ExhaustiveRollable<T, R>: WeightedRollable<T, R>, ExhaustiveRol
     public override val weight: Double
         get() = rolls.toDouble()
 
-    public override fun includeInRoll(onTarget: T): Boolean {
+    public override fun includeInRoll(onTarget: T, otherArgs: ArgMap): Boolean {
         return isExhausted()
     }
 
@@ -23,7 +23,7 @@ public interface ExhaustiveRollable<T, R>: WeightedRollable<T, R>, ExhaustiveRol
             return RollResult.Nothing()
         }
 
-        if (vetoRoll(target)) {
+        if (vetoRoll(target, otherArgs)) {
             return onRollVetoed(target)
         }
 

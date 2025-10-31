@@ -7,12 +7,12 @@ public interface RollableHooks<T, R> {
     /**
      * This should determine whether a [Rollable] will even be included as a potential draw
      */
-    public fun includeInRoll(onTarget: T): Boolean
+    public fun includeInRoll(onTarget: T, otherArgs: ArgMap): Boolean
 
     /**
      * This is a 1.2.0 shouldRoll inverse replacement
      */
-    public fun vetoRoll(onTarget: T): Boolean
+    public fun vetoRoll(onTarget: T, otherArgs: ArgMap): Boolean
 
     /**
      * This will be executed after a [vetoRoll] returns true
@@ -28,7 +28,7 @@ public interface RollableHooks<T, R> {
     /**
      * This is a 1.2.0 onSelect replacement.
      */
-    public fun onRollCompleted(target: T, result: RollResult<R>): Unit
+    public fun onRollCompleted(target: T, otherArgs: ArgMap, result: RollResult<R>): Unit
 
     public companion object {
 
@@ -40,11 +40,11 @@ public interface RollableHooks<T, R> {
 
 public data object DefaultRollableHooks: RollableHooks<Any?, Any?> {
 
-    override fun includeInRoll(onTarget: Any?): Boolean {
+    override fun includeInRoll(onTarget: Any?, otherArgs: ArgMap): Boolean {
         return true
     }
 
-    override fun vetoRoll(onTarget: Any?): Boolean {
+    override fun vetoRoll(onTarget: Any?, otherArgs: ArgMap): Boolean {
         return false
     }
 
@@ -52,11 +52,11 @@ public data object DefaultRollableHooks: RollableHooks<Any?, Any?> {
         return RollResult.Nothing()
     }
 
-    override fun transformResult(withTarget: Any?, result: RollResult<Any?>, ): RollResult<Any?> {
+    override fun transformResult(withTarget: Any?, result: RollResult<Any?>): RollResult<Any?> {
         return result
     }
 
-    override fun onRollCompleted(target: Any?, result: RollResult<Any?>, ) {
+    override fun onRollCompleted(target: Any?, otherArgs: ArgMap, result: RollResult<Any?>) {
         return Unit
     }
 }
@@ -69,12 +69,12 @@ internal data class RollableHooksImpl<T, R>(
     val onRollCompleteFunc: OnSelect<T, R> = RollableHooks.Default<T, R>()::onRollCompleted,
 ): RollableHooks<T, R> {
 
-    override fun includeInRoll(onTarget: T): Boolean {
-        return shouldIncludeFunc(onTarget)
+    override fun includeInRoll(onTarget: T, otherArgs: ArgMap): Boolean {
+        return shouldIncludeFunc(onTarget, otherArgs)
     }
 
-    override fun vetoRoll(onTarget: T): Boolean {
-        return vetoFunc(onTarget)
+    override fun vetoRoll(onTarget: T, otherArgs: ArgMap): Boolean {
+        return vetoFunc(onTarget, otherArgs)
     }
 
     override fun onRollVetoed(onTarget: T): RollResult<R> {
@@ -85,8 +85,8 @@ internal data class RollableHooksImpl<T, R>(
         return transformFunc(withTarget, result)
     }
 
-    override fun onRollCompleted(target: T, result: RollResult<R>) {
-        return onRollCompleteFunc(target, result)
+    override fun onRollCompleted(target: T, otherArgs: ArgMap, result: RollResult<R>) {
+        return onRollCompleteFunc(target, otherArgs, result)
     }
 }
 

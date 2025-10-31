@@ -20,7 +20,7 @@ public interface ChanceRollable<T, R>: Rollable<T, R> {
 
     private data object Empty: ChanceRollable<Any?, Any?> {
 
-        override fun includeInRoll(onTarget: Any?): Boolean {
+        override fun includeInRoll(onTarget: Any?, otherArgs: ArgMap): Boolean {
             return false
         }
 
@@ -32,7 +32,7 @@ public interface ChanceRollable<T, R>: Rollable<T, R> {
 
         override val rollable: Rollable<Any?, Any?> = Rollable.Empty()
 
-        override fun vetoRoll(onTarget: Any?): Boolean {
+        override fun vetoRoll(onTarget: Any?, otherArgs: ArgMap): Boolean {
             return true
         }
 
@@ -44,7 +44,7 @@ public interface ChanceRollable<T, R>: Rollable<T, R> {
             return result
         }
 
-        override fun onRollCompleted(target: Any?, result: RollResult<Any?>) {
+        override fun onRollCompleted(target: Any?, otherArgs: ArgMap, result: RollResult<Any?>) {
             // Do nothing
         }
     }

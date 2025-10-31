@@ -21,7 +21,7 @@ val multiChanceTableExample = multiChanceTable<Player, Item> {
 
         1 weight {
 
-            onRollCompleted { player, result ->
+            onRollCompleted { player, args, result ->
 
                 result as RollResult.Single<Item>
                 player.sendMessage("what the cluck, ${result.result.itemAmount} feathers?")

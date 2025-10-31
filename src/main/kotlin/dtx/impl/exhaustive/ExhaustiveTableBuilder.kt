@@ -1,5 +1,6 @@
 package dtx.impl.exhaustive
 
+import dtx.core.ArgMap
 import dtx.core.OnExhaust
 import dtx.core.Single
 import dtx.table.AbstractTableBuilder
@@ -95,7 +96,7 @@ public open class WeightedExhaustiveTableImpl<T, R>(
         return hooks.incrementExhaustible(rollable)
     }
 
-    override fun includeInRoll(onTarget: T): Boolean {
+    override fun includeInRoll(onTarget: T, otherArgs: ArgMap): Boolean {
         return isExhausted()
     }
 }

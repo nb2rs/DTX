@@ -9,7 +9,7 @@ val ringOfWealth = Item("ring_of_wealth")
 val megaRareDropTable = rsWeightedTable<Player, Item> {
 
     113 weight {
-        shouldInclude { target -> !target.isWearing(ringOfWealth) }
+        shouldInclude { target, args -> !target.isWearing(ringOfWealth) }
         result(Item("nothing"))
     }
 
@@ -21,7 +21,7 @@ val megaRareDropTable = rsWeightedTable<Player, Item> {
 val gemDropTable = rsWeightedTable<Player, Item> {
 
     63 weight {
-        shouldInclude { target -> !target.isWearing(ringOfWealth) }
+        shouldInclude { target, args -> !target.isWearing(ringOfWealth) }
         result(Item("nothing"))
     }
 

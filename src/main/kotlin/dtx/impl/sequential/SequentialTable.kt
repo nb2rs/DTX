@@ -89,8 +89,8 @@ public class SequentialTable<T, R>(
         resetTable(this)
     }
 
-    override fun vetoRoll(onTarget: T): Boolean {
-        return tableIsActive(this) || hooks.vetoRoll(onTarget)
+    override fun vetoRoll(onTarget: T, otherArgs: ArgMap): Boolean {
+        return tableIsActive(this) || hooks.vetoRoll(onTarget, otherArgs)
     }
 
     override fun selectResult(target: T, otherArgs: ArgMap): RollResult<R> {
@@ -98,7 +98,7 @@ public class SequentialTable<T, R>(
         val selected = tableEntries[pointer.currentValue]
         pointer.inc()
         val result = selected.roll(target, otherArgs)
-        onRollCompleted(target, result)
+        onRollCompleted(target, otherArgs, result)
 
         return result
     }

@@ -58,12 +58,12 @@ val crystalChestMain = rsWeightedTable<Player, Item> {
     2 weight Item("adamant_sq_shield", 1)
 
     1 weight {
-        shouldInclude { player -> player.gender == Gender.PlatelegEnjoyer }
+        shouldInclude { player, args -> player.gender == Gender.PlatelegEnjoyer }
         result(Item("rune_platelegs"))
     }
 
     1 weight {
-        shouldInclude { player -> player.gender == Gender.PlateskirtEnthusiast }
+        shouldInclude { player, args -> player.gender == Gender.PlateskirtEnthusiast }
         result(Item("rune_plateskirt"))
     }
 }

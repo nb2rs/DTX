@@ -65,12 +65,12 @@ public interface MetaRollable<T, R>: Rollable<T, R> {
 
     public val parentTable: MetaTable<T, R>
 
-    override fun includeInRoll(onTarget: T): Boolean {
-        return rollable.includeInRoll(onTarget)
+    override fun includeInRoll(onTarget: T, otherArgs: ArgMap): Boolean {
+        return rollable.includeInRoll(onTarget, otherArgs)
     }
 
-    override fun vetoRoll(onTarget: T): Boolean {
-        return rollable.vetoRoll(onTarget)
+    override fun vetoRoll(onTarget: T, otherArgs: ArgMap): Boolean {
+        return rollable.vetoRoll(onTarget, otherArgs)
     }
 
     override fun selectResult(target: T, otherArgs: ArgMap): RollResult<R> {
@@ -85,15 +85,15 @@ public interface MetaRollable<T, R>: Rollable<T, R> {
         return rollable.transformResult(withTarget, result)
     }
 
-    override fun onRollCompleted(target: T, result: RollResult<R>) {
-        return rollable.onRollCompleted(target, result)
+    override fun onRollCompleted(target: T, otherArgs: ArgMap, result: RollResult<R>) {
+        return rollable.onRollCompleted(target, otherArgs, result)
     }
 
     public override fun roll(target: T, otherArgs: ArgMap): RollResult<R> {
 
         val result = rollable.roll(target, otherArgs)
 
-        parentTable.selectEntries(target).forEach { otherEntry ->
+        parentTable.selectEntries(target, otherArgs).forEach { otherEntry ->
 
             metaEntryFilters.forEach { metaFilter ->
 
@@ -111,7 +111,7 @@ public interface MetaTable<T, R>: Table<T, R> {
 
     override val tableEntries: Collection<MetaRollable<T, R>>
 
-    override fun selectEntries(byTarget: T): Collection<MetaRollable<T, R>> {
-        return super.selectEntries(byTarget) as Collection<MetaRollable<T, R>>
+    override fun selectEntries(byTarget: T, otherArgs: ArgMap): Collection<MetaRollable<T, R>> {
+        return super.selectEntries(byTarget, otherArgs) as Collection<MetaRollable<T, R>>
     }
 }

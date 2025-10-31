@@ -4,6 +4,8 @@ import dtx.core.ArgMap
 import dtx.core.RollResult
 import dtx.core.Rollable
 import dtx.core.Single
+import dtx.core.SingleRollableBuilder
+import dtx.core.singleRollable
 
 public open class UniformTable<T, R>(
     public override val tableIdentifier: String,
@@ -12,7 +14,7 @@ public open class UniformTable<T, R>(
 ): Table<T, R>, TableHooks<T, R> by hooks {
 
     override fun selectResult(target: T, otherArgs: ArgMap): RollResult<R> {
-        return selectEntries(target).random().roll(target, otherArgs)
+        return selectEntries(target, otherArgs).random().roll(target, otherArgs)
     }
 }
 
@@ -22,10 +24,17 @@ public open class UniformTableBuilder<
         HookType: TableHooks<T, R>,
         HookBuilder: AbstractTableHooksBuilder<T, R, HookType, HookBuilder>
 >: DefaultTableBuilder<T, R, Rollable<T, R>, UniformTable<T, R>>() {
+
     override val entries: MutableCollection<Rollable<T, R>> = mutableListOf()
 
     public open fun add(result: R): UniformTableBuilder<T, R, HookType, HookBuilder> {
         addEntry(Single(result))
+        return this
+    }
+
+    public open fun add(block: SingleRollableBuilder<T, R>.() -> Unit): UniformTableBuilder<T, R, HookType, HookBuilder> {
+        val rollable = singleRollable(block)
+        addEntry(rollable)
         return this
     }
 

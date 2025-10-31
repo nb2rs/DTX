@@ -1,5 +1,6 @@
 package dtx.table
 
+import dtx.core.ArgMap
 import dtx.core.Rollable
 
 public interface Table<T, R>: Rollable<T, R> {
@@ -8,8 +9,8 @@ public interface Table<T, R>: Rollable<T, R> {
 
     public val tableEntries: Collection<Rollable<T, R>>
 
-    public fun selectEntries(byTarget: T): Collection<Rollable<T, R>> {
-        return tableEntries.filter { it.includeInRoll(byTarget) }
+    public fun selectEntries(byTarget: T, otherArgs: ArgMap): Collection<Rollable<T, R>> {
+        return tableEntries.filter { it.includeInRoll(byTarget, otherArgs) }
     }
 
     public fun rollModifier(target: T, percentage: Double): Double {

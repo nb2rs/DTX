@@ -10,7 +10,7 @@ val chestTable = matrixTable<Player, Item> {
 
     name("Unique Treasures")
 
-    onRollCompleted { player, treasure ->
+    onRollCompleted { player, args, treasure ->
         if (treasure == RollResult.Nothing<Item>()) {
             player.sendMessage("The only unique thing here is your bad luck! Ha!")
             return@onRollCompleted

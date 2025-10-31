@@ -23,8 +23,8 @@ public class MetaChanceRollable<T, R>(
     public override val metaEntryFilters: MutableSet<MetaEntryFilter<T, R>> = mutableSetOf()
 ): MetaRollable<T, R>, ChanceRollable<T, R> {
 
-    override fun includeInRoll(onTarget: T): Boolean {
-        return rollable.includeInRoll(onTarget)
+    override fun includeInRoll(onTarget: T, otherArgs: ArgMap): Boolean {
+        return rollable.includeInRoll(onTarget, otherArgs)
     }
 
     public override var chance: Double = initialChance.coerceIn(minChance, maxChance)
