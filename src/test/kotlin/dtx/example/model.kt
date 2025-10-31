@@ -1,7 +1,12 @@
 package dtx.example
 
+import dtx.core.ArgMap
+import dtx.core.RollResult
+import dtx.core.Rollable
+import dtx.core.RollableHooks
 import dtx.example.rs_tables.ChampionType
 import dtx.example.rs_tables.ClueTier
+import kotlin.random.Random
 
 sealed interface Item {
 
@@ -25,6 +30,8 @@ sealed interface Item {
     }
 }
 
+fun Item.concrete(): Item = ConcreteItem(itemId, itemAmount)
+
 data class RandAmtItem(
     override val itemId: String,
     internal val minAmount: Int,
@@ -40,7 +47,6 @@ data class ConcreteItem(
     override val itemId: String,
     override val itemAmount: Int = 1
 ): Item
-
 
 enum class Gender {
     PlatelegEnjoyer, PlateskirtEnthusiast;
