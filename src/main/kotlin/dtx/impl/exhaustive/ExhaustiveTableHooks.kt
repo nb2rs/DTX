@@ -1,6 +1,5 @@
 package dtx.impl.exhaustive
 
-import dtx.core.RollableHooks
 import dtx.table.TableHooks
 
 public interface ExhaustiveTableHooks<T, R>: TableHooks<T, R>, ExhaustiveRollableHooks<T, R>
