@@ -1,12 +1,7 @@
 package dtx.example
 
-import dtx.core.ArgMap
-import dtx.core.RollResult
-import dtx.core.Rollable
-import dtx.core.RollableHooks
 import dtx.example.rs_tables.ChampionType
 import dtx.example.rs_tables.ClueTier
-import kotlin.random.Random
 
 sealed interface Item {
 
