@@ -11,7 +11,7 @@ import dtx.example.examplePlayer
 import dtx.example.randTo
 
 val oborGuaranteed = rsGuaranteedTable<Player, Item> {
-    identifier("Obor guaranteed drops")
+    tableIdentifier = "Obor guaranteed drops"
     add(Item("big_bones"))
     add(clueDrop(ClueTier.Beginner))
     add(Item("ensouled_giant_head"))

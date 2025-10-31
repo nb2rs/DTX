@@ -5,7 +5,10 @@ import dtx.core.Rollable
 import dtx.core.Single
 import dtx.core.SingleRollableBuilder
 import dtx.core.singleRollable
+import dtx.example.Player
 import dtx.impl.chance.*
+import dtx.table.AbstractTableBuilder
+import dtx.table.DefaultTableHooksBuilder
 import dtx.table.TableHooks
 
 
@@ -29,25 +32,26 @@ class RSGuaranteedTable<T, R>(
     }
 }
 
-public class RSGuaranteedTableBuilder<T, R> {
+public class RSGuaranteedTableBuilder<T, R>: AbstractTableBuilder<
+        T,
+        R,
+        Rollable<T, R>,
+        RSGuaranteedTable<T, R>,
+        TableHooks<T, R>,
+        DefaultTableHooksBuilder<T, R>,
+        RSGuaranteedTableBuilder<T, R>
+>(DefaultTableHooksBuilder.new()) {
 
-    public var tableIdentifier: String = ""
-
-    private val tableEntries = mutableListOf<Rollable<T, R>>()
-
-    fun identifier(identifier: String): RSGuaranteedTableBuilder<T, R> {
-        tableIdentifier = identifier
-        return this
-    }
+    protected override val entries: MutableCollection<Rollable<T, R>> = mutableListOf()
 
     fun add(rollable: Rollable<T, R>): RSGuaranteedTableBuilder<T, R> {
-        tableEntries.add(rollable)
+        addEntry(rollable)
         return this
     }
 
     fun add(block: SingleRollableBuilder<T, R>.() -> Unit): RSGuaranteedTableBuilder<T, R> {
         val rollable = singleRollable(block)
-        tableEntries.add(rollable)
+        addEntry(rollable)
         return this
     }
 
@@ -56,10 +60,11 @@ public class RSGuaranteedTableBuilder<T, R> {
         return this
     }
 
-    fun build(): RSGuaranteedTable<T, R> = RSGuaranteedTable(
-        tableIdentifier = tableIdentifier,
-        tableEntries = tableEntries
-    )
+    init {
+        construct {
+            RSGuaranteedTable(tableIdentifier, entries, hooks.build())
+        }
+    }
 }
 
 fun <T, R> rsGuaranteedTable(block: RSGuaranteedTableBuilder<T, R>.() -> Unit): RSGuaranteedTable<T, R> {
