@@ -7,10 +7,10 @@ import dtx.table.TableHooks
 
 class RSDropTable<T, R>(
     public override val tableIdentifier: String,
-    private val guaranteed: RSGuaranteedTable<T, R> = RSGuaranteedTable.Empty(),
-    private val preRoll: RSPreRollTable<T, R> = RSPreRollTable.Empty(),
-    private val mainTable: RSWeightedTable<T, R> = RSWeightedTable.Empty(),
-    private val tertiaries: RSPreRollTable<T, R> = RSPreRollTable.Empty(),
+    private val guaranteed: RSTable<T, R> = RSGuaranteedTable.Empty(),
+    private val preRoll: RSTable<T, R> = RSPreRollTable.Empty(),
+    private val mainTable: RSTable<T, R> = RSWeightedTable.Empty(),
+    private val tertiaries: RSTable<T, R> = RSPreRollTable.Empty(),
     private val hooks: TableHooks<T, R> = TableHooks.Default(),
 ): RSTable<T, R>, TableHooks<T, R> by hooks {
 
