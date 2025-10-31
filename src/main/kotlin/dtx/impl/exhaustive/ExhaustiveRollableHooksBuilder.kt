@@ -2,7 +2,12 @@ package dtx.impl.exhaustive
 
 import dtx.core.AbstractRollableHooksBuilder
 
-public open class ExhaustiveRollableHooksBuilder<T, R>: AbstractRollableHooksBuilder<T, R, ExhaustiveRollableHooks<T, R>, ExhaustiveRollableHooksBuilder<T, R>>() {
+public open class ExhaustiveRollableHooksBuilder<T, R>: AbstractRollableHooksBuilder<
+        T,
+        R,
+        ExhaustiveRollableHooks<T, R>,
+        ExhaustiveRollableHooksBuilder<T, R>
+>() {
 
     public var onExhaustFunc: (T) -> Unit = { }
     public var isExhaustedFunc: ExhaustiveRollable<T, R>.() -> Boolean = { rolls <= 0 }
