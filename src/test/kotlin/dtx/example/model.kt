@@ -58,7 +58,7 @@ val xmts_quest = "x_marks_the_spot"
 
 class MoonProtection {
 
-    val items = Array<MutableList<String>>(MoonBoss.entries.size) { mutableListOf() }
+    val items = Array<MutableSet<String>>(MoonBoss.entries.size) { mutableSetOf() }
 
     fun protectedAgainst(boss: MoonBoss, item: String): Boolean {
 

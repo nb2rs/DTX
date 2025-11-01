@@ -5,7 +5,6 @@ import dtx.core.Rollable
 import dtx.core.Single
 import dtx.core.SingleRollableBuilder
 import dtx.core.singleRollable
-import dtx.example.Player
 import dtx.impl.chance.*
 import dtx.table.AbstractTableBuilder
 import dtx.table.DefaultTableHooksBuilder
