@@ -46,6 +46,8 @@ public class ArgMap private constructor(private val locked: Boolean = false) {
 
     public companion object {
 
-        public val Empty: ArgMap = ArgMap(locked = true)
+        public val Empty: ArgMap get() = ArgMap(locked = false)
+
+        public val EmptyLocked: ArgMap = ArgMap(locked = true)
     }
 }
