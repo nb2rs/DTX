@@ -81,6 +81,9 @@ val yamaStandard = RSDropTable(
 )
 
 val yamaRollChain = rsChainedTable<Player, Item> {
+
+    defaultRoll(yamaStandard)
+
     1 outOf 120 rolls yamaUnique
     1 outOf 12 rolls Item("dossier")
     1 outOf 30 rolls Item("forgotten lockbox")

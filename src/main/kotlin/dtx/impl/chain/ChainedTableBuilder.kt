@@ -9,7 +9,7 @@ import dtx.table.AbstractTableBuilder
 
 
 public open class ChainedTableBuilder<T, R, TT : ChainedTable<T, R>>(
-    private val impl: (name: String, head: ChainRollable<T, R>, hooks: ChainedTableHooks<T, R>) -> TT
+    private val impl: (name: String, head: ChainRollable<T, R>, defaultRoll: Rollable<T, R>?, hooks: ChainedTableHooks<T, R>) -> TT
 ) : AbstractTableBuilder<
         T,
         R,
@@ -18,12 +18,25 @@ public open class ChainedTableBuilder<T, R, TT : ChainedTable<T, R>>(
         ChainedTableHooks<T, R>,
         ChainedTableHooksBuilder<T, R>,
         ChainedTableBuilder<T, R, TT>
-        >(createHookBuilder = ChainedTableHooksBuilder.new()) {
+>(createHookBuilder = ChainedTableHooksBuilder.new()) {
+
+    protected var defaultRoll: Rollable<T, R>? = null
 
     override val entries: MutableCollection<ChainRollable<T, R>> = mutableListOf()
 
     private fun addRollable(rollable: ChainRollable<T, R>) {
         entries.add(rollable)
+    }
+
+    public fun defaultRoll(roll: Rollable<T, R>?): ChainedTableBuilder<T, R, TT> {
+        defaultRoll = roll
+        return this
+    }
+
+    public fun defaultRoll(block: SingleRollableBuilder<T, R>.() -> Unit): ChainedTableBuilder<T, R, TT> {
+        defaultRoll = singleRollable(block)
+
+        return this
     }
 
     public inner class Intermediary(public val rollChance: Int, public val rollable: Rollable<T, R>)
@@ -85,7 +98,7 @@ public open class ChainedTableBuilder<T, R, TT : ChainedTable<T, R>>(
                 }
             }
 
-            impl(tableIdentifier, next, hooks)
+            impl(tableIdentifier, next, defaultRoll, hooks)
         }
     }
 }
@@ -94,7 +107,7 @@ public fun <T, R> chainedTable(
     tableName: String = "Unnamed Chained Table",
     block: ChainedTableBuilder<T, R, ChainedTable<T, R>>.() -> Unit
 ): ChainedTable<T, R> {
-    val builder = ChainedTableBuilder<T, R, ChainedTable<T, R>> { name, head, hooks -> ChainedTableImpl(name, head, hooks) }
+    val builder = ChainedTableBuilder<T, R, ChainedTable<T, R>> { name, head, defaultRoll, hooks -> ChainedTableImpl(name, head, defaultRoll, hooks) }
     builder.name(tableName)
     builder.apply(block)
     return builder.build()
