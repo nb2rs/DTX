@@ -41,22 +41,7 @@ val yamaStandardConsumable = rsPrerollTable<Player, Item> {
         add(restore)
         add(boost)
 
-        transform { player, result ->
-
-            val flattened = result.flatten() as RollResult.ListOf<Item>
-
-            val concreted = flattened.results.map {
-                if (it is RandAmtItem) {
-                    it.concrete()
-                } else {
-                    it
-                }
-            }
-
-            val transformedResult = RollResult.ListOf(concreted)
-
-            transformedResult
-        }
+        transform(cnc())
     }
 }
 

@@ -1,6 +1,7 @@
 package dtx.example.rs_tables
 
 import dtx.core.RollResult
+import dtx.core.TransformResult
 import dtx.core.singleRollable
 import dtx.example.*
 
@@ -112,4 +113,29 @@ fun championScroll(type: ChampionType) = singleRollable<Player, Item> {
     }
 
     result(scrollItem)
+}
+
+
+fun <T> cnc(): TransformResult<T, Item> = fun(target: T, result: RollResult<Item>): RollResult<Item> {
+
+    if (result is RollResult.Nothing) {
+        return result
+    }
+
+    if (result is RollResult.Single) {
+        return RollResult.Single(result.result.concrete())
+    }
+
+    result as RollResult.ListOf<Item>
+
+    val concreteResults = result.results
+        .map { it.concrete() }
+        .groupBy { it.itemId }
+        .map { (itemId, results) -> ConcreteItem(itemId, results.sumOf { it.itemAmount }) }
+
+    if (concreteResults.size == 1) {
+        RollResult.Single(concreteResults.first())
+    }
+
+    return RollResult.ListOf(concreteResults)
 }
