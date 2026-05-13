@@ -1,5 +1,11 @@
 package dtx.core
 
+public fun <T, R> NothingRollable(): Rollable<T, R> = object: Rollable<T, R>, RollableHooks<T, R> by RollableHooks.Default() {
+    override fun selectResult(target: T, otherArgs: ArgMap): RollResult<R> {
+        return RollResult.Nothing()
+    }
+}
+
 public data class AnyOf<T, R>(
     public val rollables: List<Rollable<T, R>>,
     public val withHooks: RollableHooks<T, R> = RollableHooks.Default()
