@@ -5,7 +5,7 @@ import dtx.core.RollResult
 import dtx.core.Rollable
 import kotlin.random.Random
 
-public interface ChainRollable<T, R> : Rollable<T, R>, ChainRollableHooks<T, R>, Collection<ChainRollable<T, R>> {
+public interface ChainRollable<T, R>: Rollable<T, R>, ChainRollableHooks<T, R>, Collection<ChainRollable<T, R>> {
     public val base: Int
     public val rollChance: Int
     public val next: ChainRollable<T, R>
@@ -28,7 +28,7 @@ public interface ChainRollable<T, R> : Rollable<T, R>, ChainRollableHooks<T, R>,
     override fun containsAll(elements: Collection<ChainRollable<T, R>>): Boolean = collect().containsAll(elements)
 }
 
-public data object ChainEnd : ChainRollable<Any?, Any?>, ChainRollableHooks<Any?, Any?> by DefaultChainRollableHooks {
+public data object ChainEnd: ChainRollable<Any?, Any?>, ChainRollableHooks<Any?, Any?> by DefaultChainRollableHooks {
     override val base: Int = 0
     override val rollChance: Int = 0
     override val next: ChainRollable<Any?, Any?> = this
@@ -49,7 +49,7 @@ public open class ChainRollableImpl<T, R>(
     public override val next: ChainRollable<T, R>,
     public val rollable: Rollable<T, R>,
     public val hooks: ChainRollableHooks<T, R> = ChainRollableHooks.Default()
-) : ChainRollable<T, R>, ChainRollableHooks<T, R> by hooks {
+): ChainRollable<T, R>, ChainRollableHooks<T, R> by hooks {
 
     private val collected: List<ChainRollable<T, R>> = buildList {
         var current: ChainRollable<T, R> = this@ChainRollableImpl

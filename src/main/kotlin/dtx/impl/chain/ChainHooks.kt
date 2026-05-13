@@ -3,7 +3,7 @@ package dtx.impl.chain
 import dtx.core.*
 import dtx.table.*
 
-public interface ChainRollableHooks<T, R> : RollableHooks<T, R> {
+public interface ChainRollableHooks<T, R>: RollableHooks<T, R> {
     public fun adjustChance(target: T, base: Int, rollChance: Int): Pair<Int, Int>
     public fun skipLink(target: T): Boolean
     public fun nextOverride(target: T, defaultNext: ChainRollable<T, R>): ChainRollable<T, R>
@@ -14,7 +14,7 @@ public interface ChainRollableHooks<T, R> : RollableHooks<T, R> {
     }
 }
 
-public data object DefaultChainRollableHooks : ChainRollableHooks<Any?, Any?>, RollableHooks<Any?, Any?> by DefaultRollableHooks {
+public data object DefaultChainRollableHooks: ChainRollableHooks<Any?, Any?>, RollableHooks<Any?, Any?> by DefaultRollableHooks {
     override fun adjustChance(target: Any?, base: Int, rollChance: Int): Pair<Int, Int> = base to rollChance
     override fun skipLink(target: Any?): Boolean = false
     override fun nextOverride(target: Any?, defaultNext: ChainRollable<Any?, Any?>): ChainRollable<Any?, Any?> = defaultNext
@@ -27,14 +27,14 @@ internal data class ChainRollableHooksImpl<T, R>(
     val skipLinkFunc: (T) -> Boolean = ChainRollableHooks.Default<T, R>()::skipLink,
     val nextOverrideFunc: (T, ChainRollable<T, R>) -> ChainRollable<T, R> = ChainRollableHooks.Default<T, R>()::nextOverride,
     val onLinkEvaluatedFunc: (T, Int, Int, Boolean) -> Unit = ChainRollableHooks.Default<T, R>()::onLinkEvaluated,
-) : ChainRollableHooks<T, R>, RollableHooks<T, R> by baseHooks {
+): ChainRollableHooks<T, R>, RollableHooks<T, R> by baseHooks {
     override fun adjustChance(target: T, base: Int, rollChance: Int): Pair<Int, Int> = adjustChanceFunc(target, base, rollChance)
     override fun skipLink(target: T): Boolean = skipLinkFunc(target)
     override fun nextOverride(target: T, defaultNext: ChainRollable<T, R>): ChainRollable<T, R> = nextOverrideFunc(target, defaultNext)
     override fun onLinkEvaluated(target: T, rolled: Int, threshold: Int, passed: Boolean) = onLinkEvaluatedFunc(target, rolled, threshold, passed)
 }
 
-public open class ChainRollableHooksBuilder<T, R> : AbstractRollableHooksBuilder<T, R, ChainRollableHooks<T, R>, ChainRollableHooksBuilder<T, R>>() {
+public open class ChainRollableHooksBuilder<T, R>: AbstractRollableHooksBuilder<T, R, ChainRollableHooks<T, R>, ChainRollableHooksBuilder<T, R>>() {
 
     public var adjustChanceFunc: (T, Int, Int) -> Pair<Int, Int> = ChainRollableHooks.Default<T, R>()::adjustChance
     public var skipLinkFunc: (T) -> Boolean = ChainRollableHooks.Default<T, R>()::skipLink
@@ -61,7 +61,7 @@ public open class ChainRollableHooksBuilder<T, R> : AbstractRollableHooksBuilder
     internal companion object { internal fun <T, R> new() = { ChainRollableHooksBuilder<T, R>() } }
 }
 
-public interface ChainedTableHooks<T, R> : TableHooks<T, R> {
+public interface ChainedTableHooks<T, R>: TableHooks<T, R> {
     public fun onChainStart(target: T)
     public fun onChainEnd(target: T, result: RollResult<R>)
     public fun onEachLink(target: T, link: ChainRollable<T, R>, rolled: Int, threshold: Int, passed: Boolean)
@@ -71,7 +71,7 @@ public interface ChainedTableHooks<T, R> : TableHooks<T, R> {
     }
 }
 
-public data object DefaultChainedTableHooks : ChainedTableHooks<Any?, Any?>, TableHooks<Any?, Any?> by DefaultTableHooks {
+public data object DefaultChainedTableHooks: ChainedTableHooks<Any?, Any?>, TableHooks<Any?, Any?> by DefaultTableHooks {
     override fun onChainStart(target: Any?) {}
     override fun onChainEnd(target: Any?, result: RollResult<Any?>) {}
     override fun onEachLink(target: Any?, link: ChainRollable<Any?, Any?>, rolled: Int, threshold: Int, passed: Boolean) {}
@@ -82,13 +82,13 @@ internal data class ChainedTableHooksImpl<T, R>(
     val onChainStartFunc: (T) -> Unit = ChainedTableHooks.Default<T, R>()::onChainStart,
     val onChainEndFunc: (T, RollResult<R>) -> Unit = ChainedTableHooks.Default<T, R>()::onChainEnd,
     val onEachLinkFunc: (T, ChainRollable<T, R>, Int, Int, Boolean) -> Unit = ChainedTableHooks.Default<T, R>()::onEachLink,
-) : ChainedTableHooks<T, R>, TableHooks<T, R> by baseHooks {
+): ChainedTableHooks<T, R>, TableHooks<T, R> by baseHooks {
     override fun onChainStart(target: T) = onChainStartFunc(target)
     override fun onChainEnd(target: T, result: RollResult<R>) = onChainEndFunc(target, result)
     override fun onEachLink(target: T, link: ChainRollable<T, R>, rolled: Int, threshold: Int, passed: Boolean) = onEachLinkFunc(target, link, rolled, threshold, passed)
 }
 
-public open class ChainedTableHooksBuilder<T, R> : AbstractTableHooksBuilder<T, R, ChainedTableHooks<T, R>, ChainedTableHooksBuilder<T, R>>() {
+public open class ChainedTableHooksBuilder<T, R>: AbstractTableHooksBuilder<T, R, ChainedTableHooks<T, R>, ChainedTableHooksBuilder<T, R>>() {
 
     public var onChainStartFunc: (T) -> Unit = ChainedTableHooks.Default<T, R>()::onChainStart
     public var onChainEndFunc: (T, RollResult<R>) -> Unit = ChainedTableHooks.Default<T, R>()::onChainEnd

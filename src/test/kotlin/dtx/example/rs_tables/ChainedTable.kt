@@ -6,7 +6,7 @@ import dtx.impl.chain.*
 
 open class RSChainedTable<T, R>(
     private val inner: ChainedTable<T, R>
-) : RSTable<T, R>, ChainedTable<T, R>, ChainedTableHooks<T, R> by inner {
+): RSTable<T, R>, ChainedTable<T, R>, ChainedTableHooks<T, R> by inner {
 
     override val tableIdentifier: String = inner.tableIdentifier
     override val head: ChainRollable<T, R> = inner.head
@@ -25,7 +25,7 @@ open class RSChainedTable<T, R>(
     }
 }
 
-open class RSChainedTableBuilder<T, R> : ChainedTableBuilder<T, R, RSChainedTable<T, R>>(
+open class RSChainedTableBuilder<T, R>: ChainedTableBuilder<T, R, RSChainedTable<T, R>>(
     impl = { name, head, defaultRoll, hooks ->
         val inner = ChainedTableImpl(name, head, defaultRoll, hooks)
         RSChainedTable(inner)

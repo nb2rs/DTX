@@ -53,7 +53,7 @@ internal data class TableHooksImpl<T, R>(
     }
 }
 
-public abstract class AbstractTableHooksBuilder<T, R, Hooks: TableHooks<T, R>, Builder: AbstractTableHooksBuilder<T, R, Hooks, Builder>> : AbstractRollableHooksBuilder<T, R, Hooks, Builder>() {
+public abstract class AbstractTableHooksBuilder<T, R, Hooks: TableHooks<T, R>, Builder: AbstractTableHooksBuilder<T, R, Hooks, Builder>>: AbstractRollableHooksBuilder<T, R, Hooks, Builder>() {
 
     public var baseRollFunc: BaseRoll<T> = TableHooks.Default<T, R>()::baseRollFor
     public var modifyRollFunc: ModifyRoll<T> = TableHooks.Default<T, R>()::modifyRoll

@@ -70,7 +70,7 @@ public abstract class DefaultTableBuilder<
     R,
     RT: Rollable<T, R>,
     TableType: Table<T, R>
-> : AbstractTableBuilder<
+>: AbstractTableBuilder<
         T,
         R,
         RT,

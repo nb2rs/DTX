@@ -1,5 +1,5 @@
 package dtx.util
-public class SparseMatrix<T : Any>(
+public class SparseMatrix<T: Any>(
     public val rows: Int,
     public val columns: Int,
     public val defaultValue: T,

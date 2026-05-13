@@ -8,9 +8,9 @@ import dtx.core.singleRollable
 import dtx.table.AbstractTableBuilder
 
 
-public open class ChainedTableBuilder<T, R, TT : ChainedTable<T, R>>(
+public open class ChainedTableBuilder<T, R, TT: ChainedTable<T, R>>(
     private val impl: (name: String, head: ChainRollable<T, R>, defaultRoll: Rollable<T, R>?, hooks: ChainedTableHooks<T, R>) -> TT
-) : AbstractTableBuilder<
+): AbstractTableBuilder<
         T,
         R,
         ChainRollable<T, R>,
@@ -88,7 +88,7 @@ public open class ChainedTableBuilder<T, R, TT : ChainedTable<T, R>>(
                 next = when (current) {
                     is ChainRollableImpl<T, R> -> ChainRollableImpl(current.base, current.rollChance, next, current.rollable, current.hooks)
                     else -> {
-                        val adapter = object : Rollable<T, R>, RollableHooks<T, R> by current {
+                        val adapter = object: Rollable<T, R>, RollableHooks<T, R> by current {
                             override fun selectResult(target: T, otherArgs: ArgMap): dtx.core.RollResult<R> {
                                 return current.selectResult(target, otherArgs)
                             }

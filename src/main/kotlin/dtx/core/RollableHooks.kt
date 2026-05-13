@@ -1,7 +1,5 @@
 package dtx.core
 
-import dtx.table.DefaultTableHooksBuilder
-
 public interface RollableHooks<T, R> {
 
     /**

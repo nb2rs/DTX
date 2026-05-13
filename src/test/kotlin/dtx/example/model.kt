@@ -3,6 +3,7 @@ package dtx.example
 import dtx.example.rs_tables.ChampionType
 import dtx.example.rs_tables.ClueTier
 import dtx.example.rs_tables.MoonBoss
+import kotlin.random.Random
 
 sealed interface Item {
 
@@ -49,9 +50,9 @@ enum class Gender {
 }
 
  sealed interface QuestStatus {
-     data object NotStarted : QuestStatus
-     data class InProgress(val progressFlags: Long) : QuestStatus
-     data object Completed : QuestStatus
+     data object NotStarted: QuestStatus
+     data class InProgress(val progressFlags: Long): QuestStatus
+     data object Completed: QuestStatus
 }
 
 val xmts_quest = "x_marks_the_spot"
@@ -118,7 +119,7 @@ data class Player(
         ChampionType.entries.forEach { put(it, false) }
     }.toMutableMap(),
     val moonsTempProgress: MoonsProgress = MoonsProgress(),
-    val moonsProtection: MoonProtection = MoonProtection()
+    val moonsProtection: MoonProtection = MoonProtection(),
 ) {
 
     fun isWearing(item: String): Boolean = equipment.any { it.itemId == item }

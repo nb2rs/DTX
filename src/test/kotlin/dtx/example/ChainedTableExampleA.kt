@@ -4,10 +4,7 @@ import dtx.core.ArgMap
 import dtx.core.RollResult
 import dtx.core.Rollable
 import dtx.core.singleRollable
-import dtx.impl.chain.ChainEnd
-import dtx.impl.chain.ChainRollableImpl
 import dtx.impl.chain.ChainRollableHooksBuilder
-import dtx.impl.chain.ChainedTableImpl
 import dtx.impl.chain.ChainedTableHooksBuilder
 import kotlin.random.Random
 
