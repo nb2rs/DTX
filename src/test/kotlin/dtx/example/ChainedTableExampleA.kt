@@ -3,9 +3,12 @@ package dtx.example
 import dtx.core.ArgMap
 import dtx.core.RollResult
 import dtx.core.Rollable
+import dtx.core.rollableHooks
 import dtx.core.singleRollable
+import dtx.example.scraps
 import dtx.impl.chain.ChainRollableHooksBuilder
 import dtx.impl.chain.ChainedTableHooksBuilder
+import dtx.impl.chain.chainedTable
 import kotlin.random.Random
 
 // Example A: Loot chest with luck, pity, and anti-duplication
@@ -18,14 +21,11 @@ data class PlayerContext(
     val dailyGuaranteed: Boolean
 )
 
-data class Drop(val itemId: String, val qty: Int)
+data class ItemDrop(val itemId: String, val qty: Int)
 
-// Build Table-level hooks (includes TableHooks + RollableHooks + ChainedTableHooks)
-private val tableHooks = ChainedTableHooksBuilder<PlayerContext, Drop>()
+private val tableHooks = ChainedTableHooksBuilder<PlayerContext, ItemDrop>()
     .apply {
-        // TableHooks
         baseRollFor { target ->
-            // not used by ChainedTable selection itself, but shown for completeness
             println("[table:baseRollFor] target=$target -> 0.0")
             0.0
         }
@@ -33,7 +33,6 @@ private val tableHooks = ChainedTableHooksBuilder<PlayerContext, Drop>()
             println("[table:modifyRoll] target=$target base=$base -> $base")
             base
         }
-        // RollableHooks (as Table extends RollableHooks)
         shouldInclude { player, args ->
             println("[table:includeInRoll] -> true")
             true
@@ -53,7 +52,8 @@ private val tableHooks = ChainedTableHooksBuilder<PlayerContext, Drop>()
         onRollCompleted { player, args, res ->
             println("[table:onRollCompleted] result=$res")
         }
-        // ChainedTableHooks
+
+        /** chain specific hooks */
         onChainStart { player ->
             println("[chain:start] LootChest for $player")
         }
@@ -67,19 +67,21 @@ private val tableHooks = ChainedTableHooksBuilder<PlayerContext, Drop>()
     .build()
 
 // Build link rollables
-private val rareRollable: Rollable<PlayerContext, Drop> = singleRollable {
-    result(Drop("rare_skin", 1))
+val rareRollable: Rollable<PlayerContext, ItemDrop> = singleRollable {
+    result(ItemDrop("rare_skin", 1))
 }
-private val uncommonRollable: Rollable<PlayerContext, Drop> = singleRollable {
-    result(Drop("uncommon_pack", 1))
+val uncommonRollable: Rollable<PlayerContext, ItemDrop> = singleRollable {
+    result(ItemDrop("uncommon_pack", 1))
 }
-private val commonRollable: Rollable<PlayerContext, Drop> = singleRollable {
-    result(Drop("common_pack", 1))
+val commonRollable: Rollable<PlayerContext, ItemDrop> = singleRollable {
+    result(ItemDrop("common_pack", 1))
+}
+val scraps: Rollable<PlayerContext, ItemDrop> = singleRollable {
+    result(ItemDrop("random_scraps", 1))
 }
 
-// Build ChainRollable hooks for each link
-private val rareHooks = ChainRollableHooksBuilder<PlayerContext, Drop>().apply {
-    // RollableHooks
+// RARE HOOKS
+private val rareHooks = ChainRollableHooksBuilder<PlayerContext, ItemDrop>().apply {
     shouldInclude { player, args ->
         val include = "rare_skin" !in player.owned
         println("[rare:includeInRoll] -> $include")
@@ -92,7 +94,7 @@ private val rareHooks = ChainRollableHooksBuilder<PlayerContext, Drop>().apply {
     }
     onVeto { player ->
         println("[rare:onRollVetoed] granting rare immediately")
-        RollResult.Single(Drop("rare_skin", 1))
+        RollResult.Single(ItemDrop("rare_skin", 1))
     }
     transform { player, result ->
         val transformed = when (result) {
@@ -105,7 +107,7 @@ private val rareHooks = ChainRollableHooksBuilder<PlayerContext, Drop>().apply {
     onRollCompleted { player, args, result ->
         println("[rare:onRollCompleted] $result")
     }
-    // ChainRollableHooks
+    /** rare chain hooks */
     adjustChance { player, base, outOf ->
         val pityBoost = (player.pityRare / 5) // +1 base per 5 pity
         val luckBoost = (player.luck / 10)    // +1 base per 10 luck
@@ -127,114 +129,16 @@ private val rareHooks = ChainRollableHooksBuilder<PlayerContext, Drop>().apply {
     }
 }.build()
 
-private val uncommonHooks = ChainRollableHooksBuilder<PlayerContext, Drop>().apply {
-        shouldInclude { player, args -> println("[uncommon:includeInRoll] -> true")
-            true
-        }
-        vetoRoll { player, args ->
-            println("[uncommon:vetoRoll] -> false")
-            false
-        }
-        onVeto { player ->
-            println("[uncommon:onRollVetoed]")
-            RollResult.Nothing()
-        }
-        transform { player, result ->
-            println("[uncommon:transform] $result -> $result")
-            result
-        }
-        onRollCompleted { player, args, result ->
-            println("[uncommon:onRollCompleted] $result")
-        }
-        adjustChance { player, base, outOf ->
-            val luckBoost = (player.luck / 25)
-            val adjusted = (base + luckBoost) to outOf
-            println("[uncommon:adjustChance] ($base/$outOf) -> (${adjusted.first}/${adjusted.second})")
-            adjusted
-        }
-        skipLink { player ->
-            println("[uncommon:skipLink] -> false")
-            false
-        }
-        nextOverride { player, next ->
-            println("[uncommon:nextOverride] -> next")
-            next
-        }
-        onLinkEvaluated { player, r, th, p ->
-            println("[uncommon:onLinkEvaluated] passed=$p")
-        }
-}.build()
+val tableExample = chainedTable {
 
-private val commonHooks = ChainRollableHooksBuilder<PlayerContext, Drop>().apply {
-    shouldInclude { player, args ->
-        println("[common:includeInRoll] -> true")
-        true
-    }
-    vetoRoll { player, args ->
-        println("[common:vetoRoll] -> false")
-        false
-    }
-    onVeto { player -> println("[common:onRollVetoed]")
-        RollResult.Nothing()
-    }
-    transform { player, result ->
-        val transformed = when (result) {
-            is RollResult.Single -> result.copy(result = result.result.copy(qty = if (player.luck >= 30) 2 else 1))
-            else -> result
-        }
-        println("[common:transformResult] $result -> $transformed")
-        transformed
-    }
-    onRollCompleted { player, args, res ->
-        println("[common:onRollCompleted] $res")
-    }
-    adjustChance { player, base, outOf ->
-        println("[common:adjustChance] ($base/$outOf) -> ($base/$outOf)")
-        base to outOf
-    }
-    skipLink { player ->
-        println("[common:skipLink] -> false")
-        false
-    }
-    nextOverride { player, next ->
-        println("[common:nextOverride] -> next")
-        next
-    }
-    onLinkEvaluated { player, r, th, p ->
-        println("[common:onLinkEvaluated] passed=$p")
-    }
-}.build()
+    // if you think about it this is the rarest item here :)
+    defaultRoll(scraps)
 
-// Assemble chain bottom-up
-private val commonLink = ChainRollableImpl(
-    base = 100,
-    rollChance = 100,
-    next = ChainEnd(),
-    rollable = commonRollable,
-    hooks = commonHooks
-)
-private val uncommonLink = ChainRollableImpl(
-    base = 25,
-    rollChance = 100,
-    next = commonLink,
-    rollable = uncommonRollable,
-    hooks = uncommonHooks
-)
-private val rareLink = ChainRollableImpl(
-    base = 5,
-    rollChance = 100,
-    next = uncommonLink,
-    rollable = rareRollable,
-    hooks = rareHooks
-)
+    5 outOf 100 rolls rareRollable
+    25 outOf 100 rolls uncommonRollable
+    99 outOf 100 rolls commonRollable
+}
 
-val lootChest = ChainedTableImpl(
-    tableIdentifier = "LootChest",
-    head = rareLink,
-    hooks = tableHooks
-)
-
-// Small demonstration that prints to console
 fun runChainedTableExampleA() {
     val ctx = PlayerContext(
         luck = Random.nextInt(1, 100),
