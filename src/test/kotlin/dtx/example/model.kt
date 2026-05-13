@@ -55,7 +55,12 @@ enum class Gender {
      data object Completed: QuestStatus
 }
 
+data class Coordinates(val x: Int, val y: Int, val z: Int) {
+    val isUnderground: Boolean get() = z < 0
+}
+
 val xmts_quest = "x_marks_the_spot"
+val legends_quest = "legends_quest"
 
 class MoonProtection {
 
@@ -121,6 +126,7 @@ data class Player(
     }.toMutableMap(),
     val moonsTempProgress: MoonsProgress = MoonsProgress(),
     val moonsProtection: MoonProtection = MoonProtection(),
+    var coords: Coordinates = Coordinates(0, 0, Random.nextInt(-50, 50)),
 ) {
 
     fun isWearing(item: String): Boolean = equipment.any { it.itemId == item }
