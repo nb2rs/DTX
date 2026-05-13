@@ -21,11 +21,11 @@ enum class ClueTier(val isFreeToPlay: Boolean = false) {
 
 inline fun Player.hasUnlockedScrollBoxes(): Boolean = checkQuestStatus(xmts_quest) is QuestStatus.Completed
 inline fun Player.canCollectScroll(clueTier: ClueTier): Boolean = if (hasUnlockedScrollBoxes()) {
-    val amountPosessed = posessesHowMany(clueTier.scrollBox)
+    val amountPosessed = possessesHowMany(clueTier.scrollBox)
     val cap = scrollCapForTier(clueTier)
     amountPosessed > cap
 } else {
-    val amountPosessed = posessesHowMany(clueTier.clueScroll)
+    val amountPosessed = possessesHowMany(clueTier.clueScroll)
     amountPosessed == 0
 }
 
@@ -82,6 +82,42 @@ fun clueDrop(clueTier: ClueTier) = singleRollable<Player, Item> {
     }
 }
 
+fun petDrop(petName: String) = singleRollable<Player, Item> {
+
+    vetoRoll { player, args ->
+
+        if (!player.isOnMemberWorld()) {
+            return@vetoRoll true
+        }
+
+        if (player.possessesPet(petName)) {
+            return@vetoRoll false
+        }
+
+        true
+    }
+
+    onVeto { player ->
+
+        val funnyFeeling = "You have a funny feeling like you would have been followed..."
+        player.sendMessage(funnyFeeling)
+        RollResult.Nothing()
+    }
+
+    onRollCompleted { player, args, result ->
+        result as RollResult.Single<Item>
+        val message = if (player.activePet == null) {
+            player.activePet = petName
+            "You have a funny feeling like you're being followed."
+        } else {
+            player.inventory.add(result.result)
+            "You feel something weird sneaking into your backpack"
+
+        }
+        player.sendMessage(message)
+    }
+}
+
 
 enum class ChampionType {
     Imp, Goblin, Skeleton, Zombie,
@@ -95,7 +131,7 @@ fun championScroll(type: ChampionType) = singleRollable<Player, Item> {
 
     vetoRoll { target, args ->
 
-        if (target.hasChampionScrollComplete(type) || target.posesses(scrollItem)) {
+        if (target.hasChampionScrollComplete(type) || target.possesses(scrollItem)) {
 
             target.sendMessage("You have a funny feeling that you would have recieved a Champion's scroll...")
 

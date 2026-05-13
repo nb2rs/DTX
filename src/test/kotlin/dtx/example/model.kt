@@ -108,6 +108,7 @@ data class Player(
     val bank: MutableCollection<Item> = mutableListOf(),
     val inventory: MutableCollection<Item> = mutableListOf(),
     val equipment: MutableCollection<Item> = mutableListOf(),
+    var activePet: String? = null,
     val quests: MutableMap<String, QuestStatus> = mutableMapOf(xmts_quest to QuestStatus.NotStarted),
     val scrollCapIncreases: MutableMap<ClueTier, Int> = buildMap {
         ClueTier.entries.forEach { put(it, 0) }
@@ -126,18 +127,20 @@ data class Player(
 
     fun isWearing(item: Item): Boolean = isWearing(item.itemId)
 
-    fun posesses(item: String): Boolean = inventory.any { it.itemId == item } || bank.any { it.itemId == item } || isWearing(item)
+    fun possessesPet(petName: String): Boolean = activePet == petName || possesses(petName)
 
-    fun posesses(item: Item): Boolean = posesses(item.itemId)
+    fun possesses(item: String): Boolean = inventory.any { it.itemId == item } || bank.any { it.itemId == item } || isWearing(item)
 
-    fun posessesHowMany(item: String): Int {
+    fun possesses(item: Item): Boolean = possesses(item.itemId)
+
+    fun possessesHowMany(item: String): Int {
         val inventoryCount = inventory.filter { it.itemId == item }.sumOf { it.itemAmount }
         val bankCount = bank.filter { it.itemId == item }.sumOf { it.itemAmount }
         val equipmentCount = equipment.filter { it.itemId == item }.sumOf { it.itemAmount }
         return inventoryCount + bankCount + equipmentCount
     }
 
-    fun posessesHowMany(checkItem: Item): Int = posessesHowMany(checkItem.itemId)
+    fun possessesHowMany(checkItem: Item): Int = possessesHowMany(checkItem.itemId)
 
     fun isOnMemberWorld(): Boolean = currentWorld > 1
 
@@ -146,7 +149,8 @@ data class Player(
     }
 
     fun checkQuestStatus(questName: String): QuestStatus {
-        return quests[questName] ?: QuestStatus.NotStarted
+        quests.putIfAbsent(questName, QuestStatus.NotStarted)
+        return quests[questName]!!
     }
 
     fun hasChampionScrollComplete(type: ChampionType): Boolean = hasScrollCompleted[type]!!
