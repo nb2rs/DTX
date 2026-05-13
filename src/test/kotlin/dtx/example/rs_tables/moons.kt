@@ -169,6 +169,9 @@ fun main() {
     while(true) {
         println("uniques rolled: ${examplePlayer.moonsProtection.items.contentDeepToString()}")
         examplePlayer.randomizeMoons()
+        while(!examplePlayer.moonsTempProgress.eligibleToOpenChest()) {
+            examplePlayer.randomizeMoons()
+        }
         println("Rolling moons for ${examplePlayer.username} ${examplePlayer.defeatedMoons()}")
         println(lunarChest.roll(examplePlayer))
         readlnOrNull() ?: break
