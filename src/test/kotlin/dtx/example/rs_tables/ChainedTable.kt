@@ -6,7 +6,7 @@ import dtx.impl.chain.*
 
 open class RSChainedTable<T, R>(
     private val inner: ChainedTable<T, R>
-) : RSTable<T, R>, ChainedTable<T, R>, ChainedTableHooks<T, R> by inner {
+): RSTable<T, R>, ChainedTable<T, R>, ChainedTableHooks<T, R> by inner {
 
     override val tableIdentifier: String = inner.tableIdentifier
     override val head: ChainRollable<T, R> = inner.head
@@ -18,16 +18,16 @@ open class RSChainedTable<T, R>(
 
     companion object {
         val EmptyTable: RSChainedTable<Any?, Any?> = RSChainedTable(
-            ChainedTableImpl("", ChainEnd(), ChainedTableHooks.Default())
+            ChainedTableImpl("", ChainEnd(), null, ChainedTableHooks.Default())
         )
         @Suppress("UNCHECKED_CAST")
         fun <T, R> Empty(): RSChainedTable<T, R> = EmptyTable as RSChainedTable<T, R>
     }
 }
 
-open class RSChainedTableBuilder<T, R> : ChainedTableBuilder<T, R, RSChainedTable<T, R>>(
-    impl = { name, head, hooks ->
-        val inner = ChainedTableImpl(name, head, hooks)
+open class RSChainedTableBuilder<T, R>: ChainedTableBuilder<T, R, RSChainedTable<T, R>>(
+    impl = { name, head, defaultRoll, hooks ->
+        val inner = ChainedTableImpl(name, head, defaultRoll, hooks)
         RSChainedTable(inner)
     }
 )

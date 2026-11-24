@@ -7,7 +7,7 @@ import dtx.table.Table
 import kotlin.random.Random
 
 
-public interface ChainedTable<T, R> : Table<T, R>, ChainedTableHooks<T, R> {
+public interface ChainedTable<T, R>: Table<T, R>, ChainedTableHooks<T, R> {
     override val tableEntries: Collection<ChainRollable<T, R>>
 
     public val head: ChainRollable<T, R>
@@ -16,8 +16,9 @@ public interface ChainedTable<T, R> : Table<T, R>, ChainedTableHooks<T, R> {
 public open class ChainedTableImpl<T, R>(
     public override val tableIdentifier: String,
     public override val head: ChainRollable<T, R>,
+    public val defaultRoll: Rollable<T, R>? = null,
     private val hooks: ChainedTableHooks<T, R> = ChainedTableHooks.Default()
-) : ChainedTable<T, R>, ChainedTableHooks<T, R> by hooks {
+): ChainedTable<T, R>, ChainedTableHooks<T, R> by hooks {
 
     override val tableEntries: Collection<ChainRollable<T, R>> = head.collect()
 
@@ -69,7 +70,12 @@ public open class ChainedTableImpl<T, R>(
                 link = chainHooks.nextOverride(target, link.next)
             }
         }
-        val nothing: RollResult<R> = RollResult.Nothing()
+
+        val nothing: RollResult<R> = if (defaultRoll == null) {
+            RollResult.Nothing()
+        } else {
+            defaultRoll.roll(target, otherArgs)
+        }
         onChainEnd(target, nothing)
         return nothing
     }

@@ -41,22 +41,7 @@ val yamaStandardConsumable = rsPrerollTable<Player, Item> {
         add(restore)
         add(boost)
 
-        transform { player, result ->
-
-            val flattened = result.flatten() as RollResult.ListOf<Item>
-
-            val concreted = flattened.results.map {
-                if (it is RandAmtItem) {
-                    it.concrete()
-                } else {
-                    it
-                }
-            }
-
-            val transformedResult = RollResult.ListOf(concreted)
-
-            transformedResult
-        }
+        transform(cnc())
     }
 }
 
@@ -96,16 +81,19 @@ val yamaStandard = RSDropTable(
 )
 
 val yamaRollChain = rsChainedTable<Player, Item> {
+
+    defaultRoll(yamaStandard)
+
     1 outOf 120 rolls yamaUnique
     1 outOf 12 rolls Item("dossier")
-    1 outOf 30 rolls Item("forgotten lockbox")
+    1 outOf 30 rolls Item("forgotten_lockbox")
     1 outOf 15 rolls Item("oathplate_shard", 12)
     1 outOf 1 rolls yamaStandard
 }
 
 val yamaTertiaries = rsTertiaryTable<Player, Item> {
-    1 outOf 2500 chance Item("yami")
-    1 outOf 30 chance ClueTier.Elite.scrollBox
+    1 outOf 2500 chance petDrop("yami")
+    1 outOf 30 chance clueDrop(ClueTier.Elite)
 }
 
 val yamaDropTable = RSDropTable(

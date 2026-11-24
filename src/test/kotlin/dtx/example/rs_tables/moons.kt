@@ -1,7 +1,6 @@
 package dtx.example.rs_tables
 
 import dtx.core.ArgKey
-import dtx.core.ArgMap
 import dtx.core.RollResult
 import dtx.core.singleRollable
 import dtx.example.Item
@@ -13,8 +12,8 @@ import kotlin.random.Random
 
 val ROLLED_MOON_UNIQUE = ArgKey("rolled_moon_unique", false)
 
-fun howManyRolls(defeatedMoons: Int): Int {
-    return (defeatedMoons * (defeatedMoons + 1)) / 2
+fun howManyRolls(defeatedMoons: Int, diff: Int = 1, denom: Int = 2): Int {
+    return (defeatedMoons * (defeatedMoons + diff)) / denom
 }
 
 enum class MoonBoss(vararg val uniques: String) {
@@ -133,6 +132,8 @@ val moonsStandardDrop = singleRollable<Player, Item> {
         }
     }
 
+    transform(cnc())
+
     onRollCompleted { player, usedArgs, result ->
         player.moonsTempProgress.reset()
         usedArgs[ROLLED_MOON_UNIQUE] = false
@@ -168,6 +169,9 @@ fun main() {
     while(true) {
         println("uniques rolled: ${examplePlayer.moonsProtection.items.contentDeepToString()}")
         examplePlayer.randomizeMoons()
+        while(!examplePlayer.moonsTempProgress.eligibleToOpenChest()) {
+            examplePlayer.randomizeMoons()
+        }
         println("Rolling moons for ${examplePlayer.username} ${examplePlayer.defeatedMoons()}")
         println(lunarChest.roll(examplePlayer))
         readlnOrNull() ?: break

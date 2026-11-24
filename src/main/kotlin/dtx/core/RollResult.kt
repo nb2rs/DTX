@@ -1,5 +1,8 @@
 package dtx.core
 
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.contract
+
 public sealed interface RollResult<R> {
 
     public data object Nothing: RollResult<Nothing>
@@ -9,6 +12,14 @@ public sealed interface RollResult<R> {
     public companion object {
         public fun <R> Nothing(): RollResult<R> = Nothing as RollResult<R>
     }
+}
+
+@ExperimentalContracts
+public fun <R> RollResult<R>.isNothing(): Boolean {
+    contract {
+        returns(true) implies (this@isNothing is RollResult.Nothing)
+    }
+    return this is RollResult.Nothing
 }
 
 public fun <R> List<RollResult<R>>.flattenToList(): RollResult.ListOf<R> {

@@ -5,9 +5,9 @@ import dtx.core.SingleRollableBuilder
 import dtx.core.singleRollable
 
 
-public open class ChainRollableBuilder<T, R, TT : ChainRollable<T, R>>(
+public open class ChainRollableBuilder<T, R, TT: ChainRollable<T, R>>(
     private val impl: (base: Int, rollChance: Int, next: ChainRollable<T, R>, rollable: Rollable<T, R>, hooks: ChainRollableHooks<T, R>) -> TT
-) : dtx.core.AbstractRollableBuilder<
+): dtx.core.AbstractRollableBuilder<
         T,
         R,
         TT,

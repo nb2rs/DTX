@@ -6,9 +6,10 @@ public open class SingleRollableBuilder<T, R>: AbstractRollableBuilder<
     Rollable<T, R>,
     RollableHooks<T, R>,
     DefaultRollableHooksBuilder<T, R>,
-    SingleRollableBuilder<T, R>>(
-        { DefaultRollableHooksBuilder() }
-    ) {
+    SingleRollableBuilder<T, R>
+>(
+    createHookBuilder = { DefaultRollableHooksBuilder() }
+) {
 
     init {
         construct { hooks: RollableHooks<T, R> ->
@@ -55,6 +56,17 @@ public open class CollectionRollableBuilder<T, R>: SingleRollableBuilder<T, R>()
 
         rollableType = type
 
+        return this
+    }
+
+    public fun add(rollable: Rollable<T, R>): CollectionRollableBuilder<T, R> {
+        collection.add(rollable)
+        return this
+    }
+
+    public fun add(block: SingleRollableBuilder<T, R>.() -> Unit): CollectionRollableBuilder<T, R> {
+        val rollable = singleRollable(block)
+        add(rollable)
         return this
     }
 }
